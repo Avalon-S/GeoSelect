@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoSelect: Spatial-Program Execution for Training-Free RRSIS</title>
+  <meta name="description" content="GeoSelect — a training-free pipeline that reframes referring remote sensing image segmentation as the execution of a typed spatial program over a single scored-candidate-set type." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="site-nav" id="siteNav">
+  <ul>
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#motivation">Why Explicit</a></li>
+    <li><a href="#method">Method</a></li>
+    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#findings">Findings</a></li>
+    <li><a href="#cases">Cases</a></li>
+    <li><a href="#citation">BibTeX</a></li>
+  </ul>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Training-Free &middot; Remote Sensing &middot; Referring Segmentation</span>
+    <h1>GeoSelect</h1>
+    <p class="subtitle">Spatial-Program Execution for
+      <strong class="task">Training-Free Referring Remote Sensing Image Segmentation</strong></p>
+    <p class="authors">
+      <a href="https://avalon-s.github.io/" target="_blank" rel="noopener">Yuhang Jiang</a><sup>1</sup>,
+      Guohui Deng<sup>1,2,*</sup>,
+      Miaozhong Xu<sup>3</sup>,
+      Chao Ruan<sup>1</sup>,
+      Jinling Zhao<sup>1</sup>,
+      Linsheng Huang<sup>1</sup>
+    </p>
+    <p class="affiliations">
+      <sup>1</sup>School of Internet, Anhui University<br>
+      <sup>2</sup>National Engineering Research Center for Agro-Ecological Big Data Analysis &amp; Application, Anhui University<br>
+      <sup>3</sup>State Key Laboratory of Information Engineering in Surveying, Mapping and Remote Sensing, Wuhan University
+    </p>
+    <p class="affiliations"><sup>*</sup>Corresponding author</p>
+
+    <a href="#citation" class="venue-badge">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zM5 9h14v10H5V9z"/></svg>
+      <span class="venue-tag">Under Review</span>
+    </a>
+
+    <div class="btn-group">
+      <a href="https://arxiv.org/abs/2607.03869" target="_blank" rel="noopener" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/></svg>
+        Paper
+      </a>
+      <a href="https://github.com/Avalon-S/GeoSelect" target="_blank" rel="noopener" class="btn btn-dark">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 016.003 0c2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 21.795 24 17.295 24 12 24 5.37 18.627 0 12 0z"/></svg>
+        Code (coming soon)
+      </a>
+      <a href="#cases" class="btn btn-outline">
+        <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
+        Explore Cases
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section>
+  <div class="container">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="number">58.86</div><div class="label">RRSIS-D mIoU<br>best training-free result</div></div>
+      <div class="stat-card"><div class="number">&times;2.08</div><div class="label">over the best prior<br>training-free method</div></div>
+      <div class="stat-card"><div class="number">55.27</div><div class="label">RISBench mIoU<br>frozen config, transferred</div></div>
+      <div class="stat-card"><div class="number">&times;1.74</div><div class="label">over the best prior<br>training-free method</div></div>
+      <div class="stat-card"><div class="number">0</div><div class="label">trained parameters<br>every component frozen</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABSTRACT ============ -->
+<section id="abstract">
+  <div class="container">
+    <div class="section-title"><h2>Abstract</h2></div>
+    <div class="abstract-box">
+      <p>Referring remote sensing image segmentation (RRSIS) segments the single object that an
+      aerial image's natural-language expression refers to. Existing training-free methods resolve
+      the expression through <em>implicit vision&ndash;language activations or region&ndash;text
+      similarity</em>, which gives weak control over the spatial, comparative, and ordinal relations
+      that dominate aerial referring and cannot represent constructions such as <em>the largest
+      ship</em> or <em>the second court from the left</em>. We propose <strong>GeoSelect</strong>, a
+      training-free pipeline that reframes referring as the <strong>execution of a typed spatial
+      program</strong>. A frozen, text-only language model synthesises a program in a small
+      domain-specific language from the expression alone; a well-formedness checker accepts it; and a
+      deterministic executor evaluates it over a single <strong>scored candidate set</strong> type
+      that unifies continuous geometric fields with discrete set and order operators (extremum,
+      ordinal, counted union, binary relation). A reliability ladder degrades any failing program to
+      a field-only selector, so a malformed program falls back rather than forfeiting an answer. GeoSelect attains
+      <strong>58.86&nbsp;mIoU / 59.48&nbsp;oIoU</strong> on RRSIS-D test (more than twice the
+      best prior training-free method and about 93% of the supervised specialist RMSIN with no
+      training), and the identical configuration transfers to RISBench at
+      <strong>55.27&nbsp;mIoU</strong>. Holding candidates and the segmenter fixed, explicit program
+      execution substantially improves the selector over implicit matching,
+      attributing the gain to the executed representation rather than the backbone. An image-level
+      exposure audit confirms the result is not inflated by detector&ndash;benchmark overlap.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MOTIVATION / WHY EXPLICIT ============ -->
+<section id="motivation">
+  <div class="container">
+    <div class="section-title">
+      <h2>Why Explicit Execution?</h2>
+      <p class="sub">Same candidate boxes, same segmenter; only the selector differs.
+        A real RRSIS-D example: <em>&ldquo;the airplane on the right&rdquo;</em>, with several same-class candidates.</p>
+    </div>
+
+    <div class="compare">
+      <div class="compare-toggle">
+        <button class="cmp-btn active" data-mode="ours">Explicit execution (ours)</button>
+        <button class="cmp-btn" data-mode="clip">Implicit matching (GeoRSCLIP)</button>
+      </div>
+      <div class="compare-stage">
+        <div class="compare-main">
+          <img id="cmpMain" src="static/images/teaser_ours.png" alt="selector result" />
+          <p class="compare-verdict ok" id="cmpVerdict">GeoSelect executes the program and picks the airplane matching the ground truth &#10003;</p>
+        </div>
+        <div class="compare-side">
+          <img src="static/images/teaser_prior.png" alt="scored candidate set" />
+          <p class="cs-cap">The executed program scores every candidate; brighter is a higher score, and the chosen box (green) wins.</p>
+        </div>
+      </div>
+      <div class="legend-row">
+        <span><i class="swatch ours"></i> Predicted mask</span>
+        <span><i class="swatch gt"></i> Ground truth</span>
+        <span><i class="swatch cand"></i> Candidate boxes</span>
+        <span><i class="swatch win"></i> Chosen box</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METHOD ============ -->
+<section id="method">
+  <div class="container">
+    <div class="section-title">
+      <h2>Method</h2>
+      <p class="sub">A typed spatial program, synthesised then executed over one scored candidate set; every component is frozen and off-the-shelf.</p>
+    </div>
+    <div class="method-highlights">
+      <div class="method-card">
+        <span class="mc-num">C1</span>
+        <h3>Explicit Spatial-Program Execution</h3>
+        <p>A frozen text-only LLM synthesises a typed program in a small DSL from the expression
+        alone; a well-formedness checker accepts it; a deterministic executor runs it bottom-up. Every
+        intermediate program, field, and ranking is inspectable.</p>
+      </div>
+      <div class="method-card">
+        <span class="mc-num">C2</span>
+        <h3>Fields &plus; Discrete Operators</h3>
+        <p>One scored-candidate-set type unifies continuous geometric fields (position, proximity)
+        with discrete set and order operators (extremum, ordinal, counted union, relation)
+        that express the superlative, ordinal, and compositional constructions a
+        closed lexicon cannot.</p>
+      </div>
+      <div class="method-card">
+        <span class="mc-num">C3</span>
+        <h3>Reliability Ladder</h3>
+        <p>An ill-formed or failing program falls back to the field-only selector on the same
+        candidates, which is recovered exactly; in aggregate the full system stays at or above this
+        field-only floor, so a malformed program never forfeits an answer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PIPELINE (interactive stepper) ============ -->
+<section id="pipeline">
+  <div class="container">
+    <div class="section-title">
+      <h2>Trace the Pipeline</h2>
+      <p class="sub">A real, frozen-config trace; click each stage. The program is executed over one
+        scored candidate set, so every intermediate is inspectable.</p>
+    </div>
+
+    <div class="stepper">
+      <div class="stepper-tabs" id="stepperTabs"><!-- tabs injected --></div>
+      <div class="stepper-body">
+        <div class="stepper-viz" id="stepperViz"><!-- img or R-card --></div>
+        <div class="stepper-info">
+          <div class="si-tag mono" id="stepTag"></div>
+          <h4 id="stepTitle"></h4>
+          <p id="stepDesc"></p>
+          <div class="si-flow" id="stepFlow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section id="results">
+  <div class="container">
+    <div class="section-title">
+      <h2>Main Results</h2>
+      <p class="sub">Supervised specialists and trained VLMs are an upper reference, not training-free competitors.</p>
+    </div>
+
+    <h3 style="text-align:center;color:var(--indigo);margin-bottom:0.6rem;">RRSIS-D test <span style="font-weight:400;color:var(--gray-600);font-size:0.9rem;">(n = 3,481)</span></h3>
+    <div class="results-wrapper">
+      <table class="results-table">
+        <thead><tr><th>Method</th><th>Venue</th><th>mIoU</th><th>oIoU</th></tr></thead>
+        <tbody>
+          <tr class="group-header"><td colspan="4">Fully-supervised specialists</td></tr>
+          <tr><td class="method-name">LAVT</td><td class="venue">CVPR'22</td><td>61.12</td><td>76.48</td></tr>
+          <tr><td class="method-name">LGCE</td><td class="venue">TGRS'24</td><td>60.98</td><td>76.33</td></tr>
+          <tr><td class="method-name">RMSIN</td><td class="venue">CVPR'24</td><td>63.38</td><td>76.55</td></tr>
+          <tr><td class="method-name">FIANet</td><td class="venue">TGRS'24</td><td>64.01</td><td>76.81</td></tr>
+          <tr><td class="method-name">CroBIM</td><td class="venue">arXiv'25</td><td>64.24</td><td>76.37</td></tr>
+          <tr><td class="method-name">ProVG</td><td class="venue">arXiv'26</td><td>65.44</td><td>77.62</td></tr>
+          <tr><td class="method-name">BTDNet</td><td class="venue">arXiv'25</td><td>66.04</td><td>79.23</td></tr>
+          <tr><td class="method-name">RSRefSeg2</td><td class="venue">TGRS'26</td><td>69.17</td><td>79.45</td></tr>
+          <tr class="group-header"><td colspan="4">Trained vision&ndash;language models</td></tr>
+          <tr><td class="method-name">GeoGround</td><td class="venue">arXiv'24</td><td>60.50</td><td>&ndash;</td></tr>
+          <tr><td class="method-name">Text4Seg++</td><td class="venue">TPAMI'26</td><td>62.80</td><td>74.20</td></tr>
+          <tr><td class="method-name">SegEarth-R1</td><td class="venue">arXiv'25</td><td>66.40</td><td>78.01</td></tr>
+          <tr><td class="method-name">Sosa et al. (LoRA)</td><td class="venue">arXiv'26</td><td>67.6</td><td>&ndash;</td></tr>
+          <tr class="group-header"><td colspan="4">Training-free</td></tr>
+          <tr><td class="method-name">SAM3</td><td class="venue">arXiv'26</td><td>15.50</td><td>16.87</td></tr>
+          <tr><td class="method-name">EKP-HRM</td><td class="venue">GRSL'26</td><td>19.21</td><td>20.68</td></tr>
+          <tr><td class="method-name">DGL-RSIS</td><td class="venue">JAG'26</td><td>21.50</td><td>&ndash;</td></tr>
+          <tr><td class="method-name">Sosa et al. (zero-shot)</td><td class="venue">arXiv'26</td><td>24.9</td><td>&ndash;</td></tr>
+          <tr><td class="method-name">RSVG-ZeroOV</td><td class="venue">AAAI'26</td><td>28.35</td><td>22.83</td></tr>
+          <tr class="ours-row"><td class="method-name">GeoSelect (ours)</td><td class="venue">&ndash;</td><td class="hl">58.86</td><td class="hl">59.48</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="results-note">&times;2.08 over the best prior training-free method (RSVG-ZeroOV) and &times;3 over EKP-HRM, about 93% of the supervised specialist RMSIN, with no training.</p>
+
+    <h3 style="text-align:center;color:var(--indigo);margin:2.4rem 0 0.6rem;">RISBench test <span style="font-weight:400;color:var(--gray-600);font-size:0.9rem;">(n = 16,159, frozen RRSIS-D config)</span></h3>
+    <div class="results-wrapper">
+      <table class="results-table">
+        <thead><tr><th>Method</th><th>Venue</th><th>mIoU</th><th>oIoU</th></tr></thead>
+        <tbody>
+          <tr class="group-header"><td colspan="4">Fully-supervised</td></tr>
+          <tr><td class="method-name">RRN</td><td class="venue">CVPR'18</td><td>43.18</td><td>49.67</td></tr>
+          <tr><td class="method-name">BRINet</td><td class="venue">CVPR'20</td><td>42.91</td><td>48.73</td></tr>
+          <tr><td class="method-name">CMPC+</td><td class="venue">TPAMI'21</td><td>46.73</td><td>53.98</td></tr>
+          <tr><td class="method-name">CRIS</td><td class="venue">CVPR'22</td><td>55.18</td><td>69.11</td></tr>
+          <tr><td class="method-name">LAVT</td><td class="venue">CVPR'22</td><td>61.93</td><td>74.15</td></tr>
+          <tr><td class="method-name">RMSIN</td><td class="venue">CVPR'24</td><td>63.07</td><td>74.09</td></tr>
+          <tr><td class="method-name">CARIS</td><td class="venue">MM'23</td><td>65.79</td><td>75.10</td></tr>
+          <tr><td class="method-name">CroBIM</td><td class="venue">arXiv'25</td><td>67.32</td><td>73.61</td></tr>
+          <tr><td class="method-name">RSRefSeg2</td><td class="venue">TGRS'26</td><td>72.57</td><td>74.77</td></tr>
+          <tr class="group-header"><td colspan="4">Training-free</td></tr>
+          <tr><td class="method-name">SAM3</td><td class="venue">arXiv'26</td><td>21.09</td><td>26.20</td></tr>
+          <tr><td class="method-name">RSVG-ZeroOV</td><td class="venue">AAAI'26</td><td>31.84</td><td>26.35</td></tr>
+          <tr class="ours-row"><td class="method-name">GeoSelect (ours)</td><td class="venue">&ndash;</td><td class="hl">55.27</td><td class="hl">55.88</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="results-note">A single frozen configuration, selected before test evaluation, transfers directly, at &times;1.74 the best prior training-free method, surpassing the early LSTM-based supervised methods RRN, BRINet, and CMPC+ with no test-set recalibration.</p>
+  </div>
+</section>
+
+<!-- ============ FINDINGS ============ -->
+<section id="findings">
+  <div class="container">
+    <div class="section-title"><h2>Key Findings</h2></div>
+    <div class="findings-grid">
+      <div class="finding-card">
+        <div class="finding-icon c1">C1</div>
+        <h3>Referring as explicit program execution</h3>
+        <p>A typed program, synthesised by a frozen text-only LLM and executed over one
+        scored-candidate-set type that unifies continuous fields with discrete operators, reaches
+        <span class="fc-num">58.86&nbsp;mIoU</span> on RRSIS-D, &times;2.08 the prior training-free baseline.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon c2">C2</div>
+        <h3>The gain is representation, not backbone</h3>
+        <p>With detection and segmentation held fixed, explicit program execution beats the stronger
+        of two implicit selectors by <span class="fc-num">+12.06&nbsp;mIoU</span>
+        (+18.8 on image-relative, +0.9 on pure-attribute), a per-subset pattern that rules
+        out detector or segmenter explanations.</p>
+      </div>
+      <div class="finding-card">
+        <div class="finding-icon c3">C3</div>
+        <h3>Transferable, and audited for leakage</h3>
+        <p>The identical frozen configuration transfers across domains to RISBench, and an
+        image-id-level seen/unseen exposure audit shows the leakage-robust unseen subset still
+        reaches <span class="fc-num">58.4&nbsp;mIoU</span>, well above the best prior training-free
+        method, so the detector overlap is a measured strength, not an unexamined confound.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CASES (interactive gallery) ============ -->
+<section id="cases">
+  <div class="container">
+    <div class="section-title">
+      <h2>Case Explorer</h2>
+      <p class="sub">Real frozen-config outputs across the expression strata. Click any case for its synthesised
+        program, per-stage trace, and ground truth.</p>
+    </div>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="filter-tab active" data-filter="all">All</button>
+      <button class="filter-tab" data-filter="RRSIS-D">RRSIS-D</button>
+      <button class="filter-tab" data-filter="RISBench">RISBench</button>
+      <button class="filter-tab" data-filter="image">image-relative</button>
+      <button class="filter-tab" data-filter="object">object</button>
+      <button class="filter-tab" data-filter="attribute">attribute</button>
+      <button class="filter-tab" data-filter="superlative">superlative</button>
+      <button class="filter-tab" data-filter="compositional">compositional</button>
+      <button class="filter-tab" data-filter="ordinal">ordinal</button>
+    </div>
+    <div class="gallery-grid" id="caseGallery"><!-- injected --></div>
+    <p class="gallery-hint">red = candidate boxes &middot; brighter = higher score, green = chosen box &middot; cyan = GeoSelect mask &middot; yellow = ground truth. Click any case for its synthesised program and per-stage trace.</p>
+  </div>
+</section>
+
+<!-- Case modal -->
+<div class="modal-overlay" id="caseModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeCaseModal()">&times;</button>
+    <div class="cm-head">
+      <span class="badge-ds" id="cmDs"></span>
+      <span class="badge-type" id="cmType"></span>
+      <span class="cm-idx" id="cmIdx"></span>
+    </div>
+    <p class="cm-sentence" id="cmSentence"></p>
+    <div class="cm-body">
+      <div id="cmRcard"></div>
+      <div class="cm-stages" id="cmStages"></div>
+    </div>
+    <div class="cm-compare" id="cmCompare"></div>
+  </div>
+</div>
+
+<!-- ============ CITATION ============ -->
+<section id="citation">
+  <div class="container">
+    <div class="section-title"><h2>BibTeX</h2></div>
+    <div class="citation-box">
+      <button class="copy-btn" onclick="copyBib()">Copy</button>
+<pre id="bibtex">@article{jiang2026geoselect,
+  title   = {GeoSelect: Spatial-Program Execution for
+             Training-Free Referring Remote Sensing Image Segmentation},
+  author  = {Jiang, Yuhang and Deng, Guohui and Xu, Miaozhong and Ruan, Chao and Zhao, Jinling and Huang, Linsheng},
+  journal = {arXiv preprint arXiv:2607.03869},
+  year    = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <p>&copy; 2026 <a href="https://avalon-s.github.io/" target="_blank" rel="noopener">Yuhang Jiang</a> &middot; Anhui University</p>
+    <p class="disclaimer">All visualizations are real outputs of the frozen GeoSelect configuration, with no test-set recalibration and no cherry-picked retraining.</p>
+  </div>
+</footer>
+
+<script src="static/cases-data.js"></script>
+<script src="static/app.js"></script>
+</body>
+</html>
