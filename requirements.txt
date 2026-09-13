@@ -1,0 +1,21 @@
+# Core runtime. Model weights are not pip-installable -- see README.md.
+# The detector runs in its own conda environment; see laedino_env/.
+
+numpy>=1.24
+torch>=2.1
+torchvision>=0.16
+transformers>=4.51            # Qwen3 chat template
+Pillow>=10.0
+PyYAML>=6.0
+tqdm>=4.65
+pycocotools>=2.0.7            # RRSIS-D REFER masks
+matplotlib>=3.7               # scripts/fig_failure_stats.py
+
+# Optional
+# open_clip_torch>=2.24       # --selectors clip
+# sam2                        # --segmenter sam2.1, install from its own repo
+# scikit-image>=0.22          # REFER.showRef / showMask only
+# datasets>=2.16              # HF-arrow RISBench, not used for the reported numbers
+
+# Tested with: Python 3.10.20, torch 2.5.1+cu121, torchvision 0.20.1+cu121,
+# transformers 5.9.0, numpy 2.2.6, pycocotools 2.0.11

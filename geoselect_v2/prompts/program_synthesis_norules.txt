@@ -1,0 +1,41 @@
+You translate a referring expression about ONE object (or group) in a remote-sensing image into a STRICT JSON spatial program (no markdown, no commentary, no <think>). Output exactly one JSON object:
+{"cardinality": "single" | "group", "program": <expr>}
+
+An <expr> is one of these operator objects:
+- {"op": "select", "type": "<object class>"}                          pick all candidate boxes of a class
+- {"op": "filter", "child": <expr>, "pred": "<PRED>", "anchor": <ANCHOR>, "kernel_mode": "<KM>"}   keep/score by a spatial predicate
+- {"op": "argmax", "child": <expr>, "axis": "<AXIS>"}                  the MOST-extreme candidate along an axis (superlative)
+- {"op": "argmin", "child": <expr>, "axis": "<AXIS>"}                  the LEAST-extreme candidate along an axis (superlative)
+- {"op": "nth", "child": <expr>, "n": <int>, "axis": "<AXIS>"}         the n-th candidate (0-based) in reading order along an axis (ordinal)
+- {"op": "restrict_count", "child": <expr>, "k": <int>}               keep the k best candidates (grouping/counting)
+- {"op": "relate", "child": <expr>, "rel": "<REL>", "anchor": <ANCHOR>, "anchor2": <ANCHOR>}   higher-order relation (anchor2 only for BETWEEN)
+- {"op": "and", "left": <expr>, "right": <expr>} | {"op": "or", ...} | {"op": "not", "child": <expr>}
+
+PRED  (directional/proximity): LEFT, RIGHT, TOP, BOTTOM, UL, UR, LL, LR, CENTER, NEAR
+AXIS  (sort/extremum): X, Y, DIAG_UL_LR, DIAG_UR_LL
+IMAGE COORDINATES (critical for superlatives): X grows LEFT->RIGHT (left = small X, right = large X). Y grows TOP->BOTTOM (TOP of image = small Y, BOTTOM = large Y). Therefore:
+    leftmost   = argmin X      rightmost   = argmax X
+    topmost / uppermost = argmin Y      bottommost / lowermost = argmax Y
+Get this polarity right — topmost is argMIN Y (not argmax), bottommost is argMAX Y.
+KM    (kernel_mode): ALWAYS use MONOTONE for directional filters — both image-frame ("on the right") AND relative to another object ("to the left of the harbor" = the candidate furthest left of the harbor). (BANDED/EXTREMAL exist but do NOT emit them: EXTREMAL extrema are argmax/argmin; BANDED is reserved.)
+REL   (relations): NEAR, BETWEEN, ADJACENT, CONTAINS, INSIDE
+ANCHOR: "image" (position within the whole image frame) OR a nested <expr> (another object). Never a bare class string.
+
+EXAMPLES:
+"a dam located on the right" -> {"cardinality": "single", "program": {"op": "filter", "child": {"op": "select", "type": "dam"}, "pred": "RIGHT", "anchor": "image", "kernel_mode": "MONOTONE"}}
+"a harbor in the central area" -> {"cardinality": "single", "program": {"op": "filter", "child": {"op": "select", "type": "harbor"}, "pred": "CENTER", "anchor": "image", "kernel_mode": "MONOTONE"}}
+"a light gray windmill" -> {"cardinality": "single", "program": {"op": "select", "type": "light gray windmill"}}
+"the leftmost airplane" -> {"cardinality": "single", "program": {"op": "argmin", "child": {"op": "select", "type": "airplane"}, "axis": "X"}}
+"the topmost storage tank" -> {"cardinality": "single", "program": {"op": "argmin", "child": {"op": "select", "type": "storage tank"}, "axis": "Y"}}
+"the bottommost aircraft in the scene" -> {"cardinality": "single", "program": {"op": "argmax", "child": {"op": "select", "type": "aircraft"}, "axis": "Y"}}
+"the leftmost vehicle in the lower part of the image" -> {"cardinality": "single", "program": {"op": "argmin", "child": {"op": "filter", "child": {"op": "select", "type": "vehicle"}, "pred": "BOTTOM", "anchor": "image", "kernel_mode": "MONOTONE"}, "axis": "X"}}
+"the second ship from the left" -> {"cardinality": "single", "program": {"op": "nth", "child": {"op": "select", "type": "ship"}, "n": 1, "axis": "X"}}
+"the ship to the left of the harbor" -> {"cardinality": "single", "program": {"op": "filter", "child": {"op": "select", "type": "ship"}, "pred": "LEFT", "anchor": {"op": "select", "type": "harbor"}, "kernel_mode": "MONOTONE"}}
+"the vehicle below the bridge in the lower right" -> {"cardinality": "single", "program": {"op": "filter", "child": {"op": "select", "type": "vehicle"}, "pred": "BOTTOM", "anchor": {"op": "filter", "child": {"op": "select", "type": "bridge"}, "pred": "LR", "anchor": "image", "kernel_mode": "MONOTONE"}, "kernel_mode": "MONOTONE"}}
+"the rightmost of the three storage tanks on the left" -> {"cardinality": "single", "program": {"op": "argmax", "child": {"op": "restrict_count", "child": {"op": "filter", "child": {"op": "select", "type": "storage tank"}, "pred": "LEFT", "anchor": "image", "kernel_mode": "MONOTONE"}, "k": 3}, "axis": "X"}}
+"the building between the river and the road" -> {"cardinality": "single", "program": {"op": "relate", "child": {"op": "select", "type": "building"}, "rel": "BETWEEN", "anchor": {"op": "select", "type": "river"}, "anchor2": {"op": "select", "type": "road"}}}
+"the car near the building" -> {"cardinality": "single", "program": {"op": "relate", "child": {"op": "select", "type": "car"}, "rel": "NEAR", "anchor": {"op": "select", "type": "building"}}}
+"the storage tanks on the left" -> {"cardinality": "group", "program": {"op": "filter", "child": {"op": "select", "type": "storage tank"}, "pred": "LEFT", "anchor": "image", "kernel_mode": "MONOTONE"}}
+
+Now translate: "<<SENTENCE>>"
+JSON:

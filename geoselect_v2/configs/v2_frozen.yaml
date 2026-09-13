@@ -1,0 +1,85 @@
+# GeoSelect frozen configuration. Every threshold and kernel parameter lives HERE, so the
+# discipline behind the reported numbers -- calibrate on RRSIS-D val, ZERO re-tuning on RISBench --
+# is auditable in one file. The values below are the ones used for every reported result.
+#
+# Paths are given as environment variables so the config carries no machine's directory layout:
+#
+#   export GEOSELECT_DATA=/path/to/datasets      # RRSIS-D and RISBench live under here
+#   export GEOSELECT_WEIGHTS=/path/to/weights    # model checkpoints live under here
+#
+# Anything not set expands to an empty prefix, so an absolute path can also be pasted in directly.
+
+data:
+  # RRSIS-D in the REFER layout; RISBench in the ORIGINAL CrOBIM layout
+  # (img_rgb/ + mask/ + output_phrase_<split>.txt), read by RISBenchCrobimDataset -- NOT the
+  # HuggingFace arrow repackage, so the comparison is same-source.
+  root: ${GEOSELECT_DATA}/RSSIS-D
+  risbench_root: ${GEOSELECT_DATA}/RISBench_orig
+  dataset: rrsisd                    # rrsisd | risbench
+  split_by: unc
+  eval_split: test
+  val_split: val                     # legality gate + kernel calibration happen on val
+
+weights:
+  # Program synthesis uses the TEXT-ONLY Qwen3: the parser never sees the image, so a single
+  # 24 GB GPU is enough.
+  qwen: ${GEOSELECT_WEIGHTS}/Qwen3-4B
+  sam_ckpt: ${GEOSELECT_WEIGHTS}/sam-vit-large                    # SAM ViT-L (single-mask), HF dir -- headline
+  # The four below are read only when the matching flag is passed (--segmenter sam2.1 / sam3,
+  # --selectors clip), never for the reported configuration. README.md says where to get them.
+  sam2_ckpt: ${GEOSELECT_WEIGHTS}/sam2/sam2.1_hiera_large.pt
+  sam2_cfg: configs/sam2.1/sam2.1_hiera_l.yaml                    # resolved inside the sam2 package
+  sam3_path: ${GEOSELECT_WEIGHTS}/sam3
+  georsclip: ${GEOSELECT_WEIGHTS}/georsclip/RS5M_ViT-H-14.pt      # implicit region<->text baseline
+  laedino_dir: ${GEOSELECT_WEIGHTS}/LAE-DINO
+  bert_dir: ${GEOSELECT_WEIGHTS}/bert-base-uncased                # LAE-DINO text encoder
+
+parser:                              # program synthesis (geoselect_v2.parser)
+  device: cuda
+  dtype: bfloat16
+  max_new_tokens: 512
+  batch_size: 16                     # sentences per generate() call; batched greedy == single, just faster
+  # The few-shot prompt ships inside the package; override to A/B-test the prompt variants.
+  prompt_path: null                  # null -> geoselect_v2/prompts/program_synthesis_fewshot.txt
+
+detection:                           # open-vocabulary detector, run in an isolated subprocess env
+  conda_env: laedino
+  serve_script: laedino_env/serve_detect.py
+  box_threshold: 0.15                # SAHI 768px tiles, threshold 0.15, per-class NMS
+  text_threshold: 0.25
+  use_slicing: true
+  slice_wh: [768, 768]
+  overlap_ratio: 0.2
+  requery_threshold: 0.08            # active re-query: lowered threshold on re-detect
+
+segmentation:
+  backend: sam1                      # SAM ViT-L single-mask (multimask_output=False)
+  device: cuda
+
+executor:                            # recursive AST interpreter (geoselect_v2.executor)
+  # Centroid scoring is the reported configuration; 'mean' dilutes large boxes and is an ablation.
+  score_method: centroid             # centroid (headline) | mean | max
+  reference: centroid                # half-plane boundary: centroid | edge
+  graded_direction: true             # monotone ramp (furthest-in-direction)
+  direction_exponent: 1.0
+  center_sigma_frac: 0.25
+  near_scale: 1.5                    # "near" characteristic length = 1.5 * anchor size
+  anchor_mode: marginalize           # OR over anchor instances (marginalize) | first
+  group_tau: 0.8                     # group cardinality: union over score > tau * max
+
+kernels:                             # dual-kernel knobs, calibrated on val
+  banded_d0_frac: 1.0                # banded peak offset = d0_frac * anchor extent
+  banded_sigma_frac: 0.5             # banded bandwidth   = sigma_frac * anchor extent
+  extremal_beta: null                # null -> auto from candidate spacing (scale-free softmax)
+
+reliability:                         # the fallback ladder
+  fallback_to_v1: true               # illegal / ExecError / empty -> field-only selector (>= its floor)
+  consistency_check: false           # optional QSR consistency check; not used for any reported run
+
+eval:                                # RMSIN-matched protocol
+  thresholds: [0.5, 0.6, 0.7, 0.8, 0.9]
+  eval_size: 480                     # eval@480 NEAREST (RMSIN protocol)
+  resize_interp: nearest
+  # Stratified report: the three base strata (image/object/attribute) plus the four that the
+  # discrete operators target -- the gains live in those slices.
+  strata: [image, object, attribute, superlative, ordinal, group, compositional]

@@ -1,0 +1,41 @@
+You translate a referring expression about ONE object (or group) in a remote-sensing image into a STRICT JSON spatial program (no markdown, no commentary, no <think>). Output exactly one JSON object:
+{"cardinality": "single" | "group", "program": <expr>}
+
+An <expr> is one of these operator objects:
+- {"op": "select", "type": "<object class>"}                          pick all candidate boxes of a class
+- {"op": "filter", "child": <expr>, "pred": "<PRED>", "anchor": <ANCHOR>, "kernel_mode": "<KM>"}   keep/score by a spatial predicate
+- {"op": "argmax", "child": <expr>, "axis": "<AXIS>"}                  the MOST-extreme candidate along an axis (superlative)
+- {"op": "argmin", "child": <expr>, "axis": "<AXIS>"}                  the LEAST-extreme candidate along an axis (superlative)
+- {"op": "nth", "child": <expr>, "n": <int>, "axis": "<AXIS>"}         the n-th candidate (0-based) in reading order along an axis (ordinal)
+- {"op": "restrict_count", "child": <expr>, "k": <int>}               keep the k best candidates (grouping/counting)
+- {"op": "relate", "child": <expr>, "rel": "<REL>", "anchor": <ANCHOR>, "anchor2": <ANCHOR>}   higher-order relation (anchor2 only for BETWEEN)
+- {"op": "and", "left": <expr>, "right": <expr>} | {"op": "or", ...} | {"op": "not", "child": <expr>}
+
+PRED  (directional/proximity): LEFT, RIGHT, TOP, BOTTOM, UL, UR, LL, LR, CENTER, NEAR
+AXIS  (sort/extremum): X, Y, DIAG_UL_LR, DIAG_UR_LL
+IMAGE COORDINATES (critical for superlatives): X grows LEFT->RIGHT (left = small X, right = large X). Y grows TOP->BOTTOM (TOP of image = small Y, BOTTOM = large Y). Therefore:
+    leftmost   = argmin X      rightmost   = argmax X
+    topmost / uppermost = argmin Y      bottommost / lowermost = argmax Y
+Get this polarity right — topmost is argMIN Y (not argmax), bottommost is argMAX Y.
+KM    (kernel_mode): ALWAYS use MONOTONE for directional filters — both image-frame ("on the right") AND relative to another object ("to the left of the harbor" = the candidate furthest left of the harbor). (BANDED/EXTREMAL exist but do NOT emit them: EXTREMAL extrema are argmax/argmin; BANDED is reserved.)
+REL   (relations): NEAR, BETWEEN, ADJACENT, CONTAINS, INSIDE
+ANCHOR: "image" (position within the whole image frame) OR a nested <expr> (another object). Never a bare class string.
+
+RULES:
+- "on the right / in the middle / lower-left" = image-frame position -> filter with anchor "image", kernel_mode MONOTONE.
+- "in the middle / center / central / centre" = the CENTER position -> filter pred CENTER, anchor "image". It is NOT a superlative — NEVER use argmin/argmax for "middle"/"center".
+- Image-frame quadrant/edge phrases use anchor "image". Do NOT invent a nested-object anchor for these — only use a nested-expr anchor when the sentence explicitly names ANOTHER object as the reference ("to the left OF the harbor").
+- A CORNER phrase is ONE diagonal pred, not a single cardinal: "bottom-left / lower left" = LL, "bottom-right / lower right" = LR, "top-left / upper left" = UL, "top-right / upper right" = UR. Do NOT collapse "bottom-left" to just BOTTOM — keep the diagonal (LL). Edge phrases stay cardinal: "at the bottom" = BOTTOM, "on the right" = RIGHT.
+- "the leftmost / rightmost / topmost / uppermost / bottommost / lowermost" = SUPERLATIVE -> argmin/argmax on the axis: leftmost=argmin X, rightmost=argmax X, topmost/uppermost=argmin Y, bottommost/lowermost=argmax Y. The SUPERLATIVE word picks the axis+op; a SECONDARY location in the same sentence ("the leftmost ship in the bottom area") does NOT change it — the head superlative wins (leftmost -> argmin X), the secondary cue is at most a filter on the child, never the argmax axis.
+- "the first/second/third ... from the left/top" = ORDINAL -> nth (n is 0-based: second = n 1) on the axis.
+- "left OF / above / right of <another object>" = directional relative to that object -> filter with the directional pred + a nested-expr anchor + kernel_mode MONOTONE (the candidate furthest in that direction from the object). Use relate only for NEAR/BETWEEN/ADJACENT/CONTAINS/INSIDE.
+- "between A and B" -> relate with rel BETWEEN, anchor=A, anchor2=B.
+- relate is ONLY for NEAR / BETWEEN / ADJACENT / CONTAINS / INSIDE. NEVER use relate for a DIRECTIONAL word: "A above/below/left of/right of/upper-left of B" is a filter with the directional pred + a nested-expr anchor + kernel_mode MONOTONE (e.g. "the ship above the ship on the lower right" -> filter(pred TOP, anchor = filter(ship, BR), MONOTONE)).
+- COLOUR / SIZE / SHAPE words are NEVER a pred or a rel. Keep them inside the "type" noun phrase ("the orange ground track field" -> select type "orange ground track field"). A pred is ALWAYS one of the directional/proximity tokens listed above.
+- Pure attribute, no spatial cue ("the gray harbor") -> just select.
+- cardinality is "group" only for plural/all/the-row-of; otherwise "single" (the default).
+- Keep size/colour/shape adjectives inside the "type" noun phrase; turn POSITION words into operators.
+
+
+Now translate: "<<SENTENCE>>"
+JSON:
