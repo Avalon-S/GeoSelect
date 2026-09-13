@@ -18,10 +18,10 @@
     <li><a href="#abstract">Abstract</a></li>
     <li><a href="#motivation">Why Explicit</a></li>
     <li><a href="#method">Method</a></li>
-    <li><a href="#pipeline">Pipeline</a></li>
+    <li><a href="#inspector">Inspector</a></li>
     <li><a href="#results">Results</a></li>
     <li><a href="#findings">Findings</a></li>
-    <li><a href="#cases">Cases</a></li>
+    <li><a href="#programs">Programs</a></li>
     <li><a href="#citation">BibTeX</a></li>
   </ul>
 </nav>
@@ -50,7 +50,7 @@
 
     <a href="#citation" class="venue-badge">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2V2h-2v2H9V2H7zM5 9h14v10H5V9z"/></svg>
-      <span class="venue-tag">Under Review</span>
+      <span class="venue-tag">IEEE TGRS 2026</span>
     </a>
 
     <div class="btn-group">
@@ -60,7 +60,7 @@
       </a>
       <a href="https://github.com/Avalon-S/GeoSelect" target="_blank" rel="noopener" class="btn btn-dark">
         <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.604-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 016.003 0c2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.694.825.576C20.565 21.795 24 17.295 24 12 24 5.37 18.627 0 12 0z"/></svg>
-        Code (coming soon)
+        Code
       </a>
       <a href="#cases" class="btn btn-outline">
         <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg>
@@ -91,23 +91,23 @@
       <p>Referring remote sensing image segmentation (RRSIS) segments the single object that an
       aerial image's natural-language expression refers to. Existing training-free methods resolve
       the expression through <em>implicit vision&ndash;language activations or region&ndash;text
-      similarity</em>, which gives weak control over the spatial, comparative, and ordinal relations
-      that dominate aerial referring and cannot represent constructions such as <em>the largest
+      similarity</em>, which gives weak control over the spatial, superlative, and ordinal relations
+      that dominate aerial referring and cannot represent constructions such as <em>the rightmost
       ship</em> or <em>the second court from the left</em>. We propose <strong>GeoSelect</strong>, a
       training-free pipeline that reframes referring as the <strong>execution of a typed spatial
       program</strong>. A frozen, text-only language model synthesises a program in a small
       domain-specific language from the expression alone; a well-formedness checker accepts it; and a
       deterministic executor evaluates it over a single <strong>scored candidate set</strong> type
       that unifies continuous geometric fields with discrete set and order operators (extremum,
-      ordinal, counted union, binary relation). A reliability ladder degrades any failing program to
-      a field-only selector, so a malformed program falls back rather than forfeiting an answer. GeoSelect attains
+      ordinal, top-k, binary relation). A reliability ladder degrades any failing program to the
+      field-only special case rather than forfeiting an answer. GeoSelect attains
       <strong>58.86&nbsp;mIoU / 59.48&nbsp;oIoU</strong> on RRSIS-D test (more than twice the
       best prior training-free method and about 93% of the supervised specialist RMSIN with no
       training), and the identical configuration transfers to RISBench at
       <strong>55.27&nbsp;mIoU</strong>. Holding candidates and the segmenter fixed, explicit program
-      execution substantially improves the selector over implicit matching,
+      execution improves the selector over implicit matching,
       attributing the gain to the executed representation rather than the backbone. An image-level
-      exposure audit confirms the result is not inflated by detector&ndash;benchmark overlap.</p>
+      exposure audit shows comparable accuracy on the audited unseen subset.</p>
     </div>
   </div>
 </section>
@@ -165,42 +165,82 @@
         <span class="mc-num">C2</span>
         <h3>Fields &plus; Discrete Operators</h3>
         <p>One scored-candidate-set type unifies continuous geometric fields (position, proximity)
-        with discrete set and order operators (extremum, ordinal, counted union, relation)
+        with discrete set and order operators (extremum, ordinal, top-k, relation)
         that express the superlative, ordinal, and compositional constructions a
         closed lexicon cannot.</p>
       </div>
       <div class="method-card">
         <span class="mc-num">C3</span>
         <h3>Reliability Ladder</h3>
-        <p>An ill-formed or failing program falls back to the field-only selector on the same
-        candidates, which is recovered exactly; in aggregate the full system stays at or above this
-        field-only floor, so a malformed program never forfeits an answer.</p>
+        <p>A failing program falls back to the field-only special case on the same candidates,
+        which the executor recovers exactly. In aggregate the system stays at or above that
+        field-only floor.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ PIPELINE (interactive stepper) ============ -->
-<section id="pipeline">
+<!-- ============ EXECUTION INSPECTOR (live, real frozen-config traces) ============ -->
+<section id="inspector">
   <div class="container">
     <div class="section-title">
-      <h2>Trace the Pipeline</h2>
-      <p class="sub">A real, frozen-config trace; click each stage. The program is executed over one
-        scored candidate set, so every intermediate is inspectable.</p>
+      <h2>Execution Inspector</h2>
+      <p class="sub">The expression is compiled into a typed program, and the program is executed
+        over one scored candidate set. Step through it, or edit an operator and watch the selection
+        change. Every candidate box below is a real detection from the frozen pipeline.</p>
     </div>
 
-    <div class="stepper">
-      <div class="stepper-tabs" id="stepperTabs"><!-- tabs injected --></div>
-      <div class="stepper-body">
-        <div class="stepper-viz" id="stepperViz"><!-- img or R-card --></div>
-        <div class="stepper-info">
-          <div class="si-tag mono" id="stepTag"></div>
-          <h4 id="stepTitle"></h4>
-          <p id="stepDesc"></p>
-          <div class="si-flow" id="stepFlow"></div>
+    <div class="filter-tabs" id="inspFilters"></div>
+    <div class="cases" id="cases"></div>
+
+    <div class="expr">
+      <div class="lbl">Referring expression</div>
+      <div class="sentence" id="sentence"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+
+    <div class="panes">
+      <div class="pane">
+        <h2>Image <span class="hint" id="stageHint">scored candidate set</span></h2>
+        <div class="stage"><canvas id="canvas"></canvas></div>
+        <div class="legend">
+          <span><i style="background:#E8624A"></i>candidate</span>
+          <span><i style="background:#12B886"></i>selected</span>
+          <span><i style="background:linear-gradient(90deg,#0C7C8C,#19C3D6,#F0B92A)"></i>geometric field</span>
+          <span><i style="background:#22d3ee"></i>GeoSelect mask</span>
+          <span><i style="background:#ffeb00"></i>ground truth</span>
+        </div>
+      </div>
+
+      <div class="pane">
+        <h2>Program &pi; <span class="hint">click a boxed token to edit</span></h2>
+        <div class="body">
+          <div class="ast" id="ast"></div>
+          <div class="edited-note hidden" id="editedNote"></div>
+        </div>
+        <div class="controls">
+          <button id="btnBack">&larr; Step</button>
+          <button id="btnStep" class="primary">Step &rarr;</button>
+          <button id="btnRun">Run all</button>
+          <button id="btnReset">Reset</button>
+          <span class="spacer"></span>
+          <label><input type="checkbox" id="toggleField"> field</label>
+          <label><input type="checkbox" id="toggleMask"> mask</label>
+        </div>
+      </div>
+
+      <div class="pane">
+        <h2>Candidate set <span class="hint" id="candHint"></span></h2>
+        <div class="body">
+          <div class="step-label" id="stepLabel"></div>
+          <div id="cands"></div>
         </div>
       </div>
     </div>
+
+    <p class="insp-note">Scores are computed in your browser by a port of the executor under the
+      frozen configuration. Detection and segmentation are not rerun: the mask overlay is the
+      pipeline's real output, so editing an operator changes the selection, not the mask.</p>
   </div>
 </section>
 
@@ -286,62 +326,33 @@
         <h3>The gain is representation, not backbone</h3>
         <p>With detection and segmentation held fixed, explicit program execution beats the stronger
         of two implicit selectors by <span class="fc-num">+12.06&nbsp;mIoU</span>
-        (+18.8 on image-relative, +0.9 on pure-attribute), a per-subset pattern that rules
-        out detector or segmenter explanations.</p>
+        (+18.8 on image-relative, +0.9 on pure-attribute).</p>
       </div>
       <div class="finding-card">
         <div class="finding-icon c3">C3</div>
-        <h3>Transferable, and audited for leakage</h3>
-        <p>The identical frozen configuration transfers across domains to RISBench, and an
-        image-id-level seen/unseen exposure audit shows the leakage-robust unseen subset still
-        reaches <span class="fc-num">58.4&nbsp;mIoU</span>, well above the best prior training-free
-        method, so the detector overlap is a measured strength, not an unexamined confound.</p>
+        <h3>Transferable, and exposure-audited on RRSIS-D</h3>
+        <p>The identical frozen configuration transfers across domains to RISBench. Separately, an
+        image-id-level seen/unseen audit on RRSIS-D puts the unseen subset at
+        <span class="fc-num">58.44&nbsp;mIoU</span> (<span class="fc-num">54.46</span> under a
+        conservative seen-set), both well above prior training-free full-test results. We read this
+        descriptively: the gap is small on this audit, though it does not rule out other forms of
+        pretraining exposure, and we make no exposure-robustness claim for RISBench.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ CASES (interactive gallery) ============ -->
-<section id="cases">
+<!-- ============ PROGRAM LIBRARY (an index into the inspector) ============ -->
+<section id="programs">
   <div class="container">
     <div class="section-title">
-      <h2>Case Explorer</h2>
-      <p class="sub">Real frozen-config outputs across the expression strata. Click any case for its synthesised
-        program, per-stage trace, and ground truth.</p>
+      <h2>Program Library</h2>
+      <p class="sub">What each operator looks like on a real expression. Pick any card and it opens
+        in the inspector above, where you can step through its execution.</p>
     </div>
-    <div class="filter-tabs" id="filterTabs">
-      <button class="filter-tab active" data-filter="all">All</button>
-      <button class="filter-tab" data-filter="RRSIS-D">RRSIS-D</button>
-      <button class="filter-tab" data-filter="RISBench">RISBench</button>
-      <button class="filter-tab" data-filter="image">image-relative</button>
-      <button class="filter-tab" data-filter="object">object</button>
-      <button class="filter-tab" data-filter="attribute">attribute</button>
-      <button class="filter-tab" data-filter="superlative">superlative</button>
-      <button class="filter-tab" data-filter="compositional">compositional</button>
-      <button class="filter-tab" data-filter="ordinal">ordinal</button>
-    </div>
-    <div class="gallery-grid" id="caseGallery"><!-- injected --></div>
-    <p class="gallery-hint">red = candidate boxes &middot; brighter = higher score, green = chosen box &middot; cyan = GeoSelect mask &middot; yellow = ground truth. Click any case for its synthesised program and per-stage trace.</p>
+    <div id="libGroups"><!-- injected from the inspector's own data --></div>
   </div>
 </section>
-
-<!-- Case modal -->
-<div class="modal-overlay" id="caseModal">
-  <div class="modal-content">
-    <button class="modal-close" onclick="closeCaseModal()">&times;</button>
-    <div class="cm-head">
-      <span class="badge-ds" id="cmDs"></span>
-      <span class="badge-type" id="cmType"></span>
-      <span class="cm-idx" id="cmIdx"></span>
-    </div>
-    <p class="cm-sentence" id="cmSentence"></p>
-    <div class="cm-body">
-      <div id="cmRcard"></div>
-      <div class="cm-stages" id="cmStages"></div>
-    </div>
-    <div class="cm-compare" id="cmCompare"></div>
-  </div>
-</div>
 
 <!-- ============ CITATION ============ -->
 <section id="citation">
@@ -368,7 +379,13 @@
   </div>
 </footer>
 
-<script src="static/cases-data.js"></script>
+<!-- Execution inspector: same files the standalone page at inspector/ uses. The base tells it
+     where its images live now that it is one directory up. Its data loads FIRST because the
+     Program Library below is built from it. -->
+<script>window.INSPECTOR_BASE = "inspector/";</script>
+<script src="inspector/traces.js"></script>
+<script src="inspector/geoexec.js"></script>
 <script src="static/app.js"></script>
+<script src="inspector/app.js"></script>
 </body>
 </html>

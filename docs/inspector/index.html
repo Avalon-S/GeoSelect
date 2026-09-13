@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GeoSelect — Execution Inspector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Execution <span>Inspector</span></h1>
+    <p class="lede">The expression is compiled into a typed program, and the program is executed
+      over one scored candidate set. Step through it, or edit an operator and watch the selection
+      change. Every candidate box below is a real detection from the frozen pipeline.</p>
+  </header>
+
+  <div class="filter-tabs" id="inspFilters"></div>
+  <div class="cases" id="cases"></div>
+
+  <div class="expr">
+    <div class="lbl">Referring expression</div>
+    <div class="sentence" id="sentence"></div>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <div class="panes">
+
+    <section class="pane">
+      <h2>Image <span class="hint" id="stageHint">scored candidate set</span></h2>
+      <div class="stage">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="legend">
+        <span><i style="background:#E8624A"></i>candidate</span>
+        <span><i style="background:#12B886"></i>selected</span>
+        <span><i style="background:linear-gradient(90deg,#0C7C8C,#19C3D6,#F0B92A)"></i>geometric field</span>
+        <span><i style="background:#22d3ee"></i>GeoSelect mask</span>
+        <span><i style="background:#ffeb00"></i>ground truth</span>
+      </div>
+    </section>
+
+    <section class="pane">
+      <h2>Program &pi; <span class="hint">click a boxed token to edit</span></h2>
+      <div class="body">
+        <div class="ast" id="ast"></div>
+        <div class="edited-note hidden" id="editedNote"></div>
+      </div>
+      <div class="controls">
+        <button id="btnBack">&larr; Step</button>
+        <button id="btnStep" class="primary">Step &rarr;</button>
+        <button id="btnRun">Run all</button>
+        <button id="btnReset">Reset</button>
+        <span class="spacer"></span>
+        <label><input type="checkbox" id="toggleField"> field</label>
+        <label><input type="checkbox" id="toggleMask"> mask</label>
+      </div>
+    </section>
+
+    <section class="pane">
+      <h2>Candidate set <span class="hint" id="candHint"></span></h2>
+      <div class="body">
+        <div class="step-label" id="stepLabel"></div>
+        <div id="cands"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="note">
+    <p><b>Provenance.</b> Candidate boxes are recovered from the frozen run's rendered overlays and
+    validated twice: the recovered winner matches the <code>v2_boxes</code> stored in
+    <code>samples.jsonl</code>, and re-executing the real synthesised program on these boxes
+    reproduces that same winner. Cases that fail either check are not shown as executable.</p>
+    <p><b>What is live.</b> The scores on this page are computed in your browser by a port of the
+    executor, under the frozen configuration (centroid scoring, graded ramps, <code>&sigma;</code>
+    = 0.25, extremal temperature from candidate spacing). Detection and segmentation are not rerun:
+    the mask overlay is the pipeline's real output. Editing an operator therefore changes the
+    selection, not the mask.</p>
+  </footer>
+
+</div>
+
+<script src="traces.js"></script>
+<script src="geoexec.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
