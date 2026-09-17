@@ -54,7 +54,7 @@ def _load_sentences(args):
         from geogrounder.data.rrsisd_dataset import RRSISDDataset
         ds = RRSISDDataset(args.data_root, split=args.split)
     elif args.dataset == 'risbench':
-        # Original CrOBIM layout (img_rgb/ + mask/ + output_phrase_<split>.txt) -> RISBench_orig.
+        # Original CroBIM layout (img_rgb/ + mask/ + output_phrase_<split>.txt) -> RISBench_orig.
         from geogrounder.data.risbench_crobim_dataset import RISBenchCrobimDataset
         ds = RISBenchCrobimDataset(args.data_root, split=args.split)
     else:

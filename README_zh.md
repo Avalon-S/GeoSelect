@@ -3,7 +3,7 @@
 [![Paper](https://img.shields.io/badge/Paper-arXiv%3A2607.03869-red)](https://arxiv.org/abs/2607.03869)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://avalon-s.github.io/GeoSelect/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Venue](https://img.shields.io/badge/IEEE%20TGRS-accepted-brightgreen)](#引用)
+[![IEEE TGRS](https://img.shields.io/badge/IEEE%20TGRS-10.1109%2FTGRS.2026.3734378-brightgreen)](https://ieeexplore.ieee.org/document/11693937)
 
 [English](README.md) · **简体中文**
 
@@ -29,6 +29,9 @@ GeoSelect 从航拍图像中分割出指代表达式所指的那一个目标，*
 
 *一个 scored candidate set 贯穿所有阶段：冻结的 LLM 合成程序，`Select` 检测，`Filter` 用连续几何场重新
 加权，`Argmin` 沿某个轴取极值，SAM 把选中的框变成 mask。两张图均取自论文。*
+
+[项目页](https://avalon-s.github.io/GeoSelect/#inspector)上有交互 demo：选一个真实案例，单步执行它的程序，
+或改动一个算子，观察选择结果如何变化。
 
 ---
 
@@ -58,21 +61,18 @@ GeoSelect 从航拍图像中分割出指代表达式所指的那一个目标，*
 ## 快速开始：无需 GPU 复现论文数字
 
 逐样本 IoU dump 随仓库发布，因此 headline 数字、分层表格和 bootstrap 区间都能仅凭已发布数据重算——不需要
-权重，不跑 detection，不跑 segmentation：
+权重，不跑 detection，不跑 segmentation。`compute_ci.py` 和 `make_tables.py` 只依赖 Python 标准库，
+`fig_failure_stats.py` 另需 `matplotlib`。
 
 ```bash
-conda create -n geoselect python=3.10 -y
-conda activate geoselect
-pip install -r requirements.txt
-
 python scripts/compute_ci.py          # headline mIoU + 95% CIs, per-stratum deltas
 
 # the two reported runs -- these reproduce the headline table above
-python scripts/make_tables.py experiments/runs/eval_rrsisd_test_oracle/summary.json \
-                              experiments/eval_risbench_test/summary.json
+python scripts/make_tables.py experiments/runs/eval_rrsisd_test/summary.json \
+                              experiments/runs/eval_risbench_test/summary.json
 
 # the second RRSIS-D run, which carries both selectors and so gives the V1-vs-V2 per-stratum delta
-python scripts/make_tables.py experiments/eval_rrsisd_test/summary.json
+python scripts/make_tables.py experiments/runs/eval_rrsisd_test_v1v2/summary.json
 
 python scripts/fig_failure_stats.py   # the one figure computed purely from the dumps
 ```
@@ -80,18 +80,18 @@ python scripts/fig_failure_stats.py   # the one figure computed purely from the 
 `compute_ci.py` 在输出区间前先用已发表数值校验自己的聚合结果（5,000 次重采样，seed 0），偏差会被报出而不是
 被吸收。
 
-**仓库里有两次 RRSIS-D test 运行。** 论文报告的 58.86 / 59.48 来自 `runs/eval_rrsisd_test_oracle/`，也是
-`compute_ci.py` 断言的那一份。另一次 `eval_rrsisd_test/` 同时评估两个 selector，给出 58.77 / 59.60；因为
-oracle 那次只对完整程序打分，它是唯一能重建 V1-vs-V2 分层对比的 dump。0.09 的差异是
+**仓库里有两次 RRSIS-D test 运行。** 论文报告的 58.86 / 59.48 来自 `runs/eval_rrsisd_test/`，也是
+`compute_ci.py` 断言的那一份。另一次 `runs/eval_rrsisd_test_v1v2/` 同时评估两个 selector，给出
+58.77 / 59.60；因为报告的那次没有 `v1` 分数，它是唯一能重建 V1-vs-V2 分层对比的 dump。0.09 的差异是
 [关于确定性](#关于确定性)中说明的 detector build 效应。RISBench 不受影响：两份 dump 都是 55.27 / 55.88。
 
 ### dump 里有什么
 
 | 文件 | 行数 | 是什么 |
 |---|---|---|
-| `experiments/runs/eval_rrsisd_test_oracle/samples.jsonl` | 3,481 | **RRSIS-D test，论文报告的运行**（58.86 / 59.48），含 oracle selector 上界 |
-| `experiments/eval_rrsisd_test/samples.jsonl` | 3,481 | 另一次 RRSIS-D test 运行，含两个 selector（58.77 / 59.60）——见上文 |
-| `experiments/eval_risbench_test/samples.jsonl` | 16,159 | **RISBench test，论文报告的运行**（55.27 / 55.88），含两个 selector |
+| `experiments/runs/eval_rrsisd_test/samples.jsonl` | 3,481 | **RRSIS-D test，论文报告的运行**（58.86 / 59.48），含 oracle selector 上界 |
+| `experiments/runs/eval_rrsisd_test_v1v2/samples.jsonl` | 3,481 | 另一次 RRSIS-D test 运行，含两个 selector（58.77 / 59.60）——见上文 |
+| `experiments/runs/eval_risbench_test/samples.jsonl` | 16,159 | **RISBench test，论文报告的运行**（55.27 / 55.88），含两个 selector |
 | `experiments/runs/eval_risbench_test_oracle/samples.jsonl` | 16,159 | RISBench 的 oracle 上界；完整程序的数值与上一行一致 |
 | `experiments/runs/eval_rrsisd_val/samples.jsonl` | — | RRSIS-D val，全部 selector 消融 |
 
@@ -212,14 +212,14 @@ parser 是**纯文本**的 Qwen3-4B：它从不接触图像，这也是单张 24
 把 `GEOSELECT_DATA` 指向如下组织的目录：
 
 ```
-RSSIS-D/
+RSSIS-D/                                          RRSIS-D, named as the config expects
   rrsisd/{refs(unc).p, instances.json}            REFER layout
   images/rrsisd/
 RISBench_orig/
-  img_rgb/  mask/  output_phrase_<split>.txt      original CrOBIM layout
+  img_rgb/  mask/  output_phrase_<split>.txt      original CroBIM layout
 ```
 
-RISBench 按**原始 CrOBIM 布局**读取，而非 HuggingFace 的重打包版本，以保证对比同源。
+RISBench 按**原始 CroBIM 布局**读取，而非 HuggingFace 的重打包版本，以保证对比同源。
 
 ### 5. 长跑前先检查 detector bridge
 
@@ -256,8 +256,8 @@ python -m geoselect_v2.eval.run_eval --dataset rrsisd --split test --n 12 \
        --selectors v1,v2 --out-dir /tmp/smoke --cache-dir /tmp/smoke_cache
 ```
 
-`--n` 确定性地取前 N 条表达式，写出的行与已发布的 `experiments/eval_rrsisd_test/samples.jsonl` 前 N 行
-一一对应，可逐字段比对。逐样本 IoU 对得上，即说明整条链路接对了。
+`--n` 确定性地取前 N 条表达式，写出的行与已发布的 `experiments/runs/eval_rrsisd_test_v1v2/samples.jsonl`
+前 N 行一一对应，可逐字段比对。逐样本 IoU 对得上，即说明整条链路接对了。
 
 运行分阶段进行，三个模型不会同时占显存：加载 parser → 合成全部程序 → 卸载 → 检测（子进程，独立环境）→
 加载 SAM → 出 mask。解析与检测结果缓存在 `experiments/cache/`，以实际输入为 key，改动 prompt 会自动让解析
@@ -324,20 +324,17 @@ python scripts/eval_program_legality.py   # program legality / fallback rate (ne
 
 ## 引用
 
-本文已被 IEEE Transactions on Geoscience and Remote Sensing 录用。卷期号确定前，请引用预印本：
-
 ```bibtex
 @article{jiang2026geoselect,
   title   = {GeoSelect: Spatial-Program Execution for Training-Free Referring
              Remote Sensing Image Segmentation},
   author  = {Jiang, Yuhang and Deng, Guohui and Xu, Miaozhong and Ruan, Chao and
              Zhao, Jinling and Huang, Linsheng},
-  journal = {arXiv preprint arXiv:2607.03869},
-  year    = {2026}
+  journal = {IEEE Transactions on Geoscience and Remote Sensing},
+  year    = {2026},
+  doi     = {10.1109/TGRS.2026.3734378}
 }
 ```
-
-待卷号与页码确定后，此条目将替换为期刊引用。
 
 [↑ 目录](#目录)
 

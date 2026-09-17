@@ -18,7 +18,7 @@
   "eval_size": 480,
   "n": 0,
   "results_dir": "experiments/runs",
-  "out_dir": "experiments/runs/eval_rrsisd_test_oracle",
+  "out_dir": "experiments/runs/eval_rrsisd_test",
   "tag": "oracle",
   "sam1_path": "sam-vit-large",
   "serve_script": "laedino_env/serve_detect.py",

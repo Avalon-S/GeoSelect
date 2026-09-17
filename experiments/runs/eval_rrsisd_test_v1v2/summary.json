@@ -9,7 +9,7 @@
   "batch_size": 16,
   "eval_size": 480,
   "n": 0,
-  "out_dir": "experiments/eval_rrsisd_test",
+  "out_dir": "experiments/runs/eval_rrsisd_test_v1v2",
   "tag": "",
   "sam1_path": "sam-vit-large",
   "serve_script": "laedino_env/serve_detect.py",

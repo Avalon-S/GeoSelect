@@ -21,6 +21,9 @@ TH = 0.5
 CATS = ['Success', 'Detection', 'Selection', 'Program-path']
 COLORS = ['#4Fa64F', '#4F8Fd0', '#d0a020', '#c84040']
 DS = [('rrsisd', 'RRSIS-D'), ('risbench', 'RISBench')]
+# The test dumps that record the oracle-selector ceiling (oracle_boxIoU).
+DUMPS = {'rrsisd': 'experiments/runs/eval_rrsisd_test/samples.jsonl',
+         'risbench': 'experiments/runs/eval_risbench_test_oracle/samples.jsonl'}
 
 
 def breakdown(path):
@@ -42,8 +45,7 @@ def breakdown(path):
 def main():
     fig, axes = plt.subplots(1, 2, figsize=(8.2, 2.9))
     for ax, (ds, name) in zip(axes, DS):
-        p = f'experiments/runs/eval_{ds}_test_oracle/samples.jsonl'
-        n, pct = breakdown(p)
+        n, pct = breakdown(DUMPS[ds])
         bars = ax.bar(CATS, pct, color=COLORS, edgecolor='black', linewidth=0.5, width=0.7)
         for b, v in zip(bars, pct):
             ax.text(b.get_x() + b.get_width() / 2, v + 1.2, f'{v:.1f}%',
@@ -61,7 +63,7 @@ def main():
     fig.savefig(out, dpi=300, bbox_inches='tight')
     print(f'[fig] failure stats -> {out}')
     for ds, name in DS:
-        n, pct = breakdown(f'experiments/runs/eval_{ds}_test_oracle/samples.jsonl')
+        n, pct = breakdown(DUMPS[ds])
         print(f'  {name}: ' + '  '.join(f'{k}={v:.1f}%' for k, v in zip(CATS, pct)))
 
 

@@ -3,8 +3,8 @@ do NOT appear VERBATIM in any dataset split (eval-set leakage). They may be CLOS
 an exact (normalised) match to a real eval sentence is contamination and must be edited.
 
 Same discipline V1 enforced (geogrounder.parsing.qwen_parser: "Few-shot examples ... verified
-DISJOINT from RRSIS-D val/test by exact-match"). Run this on EACH server (RRSIS-D and RISBench
-live on different machines) — it checks the prompt examples against whatever dataset is local:
+DISJOINT from RRSIS-D val/test by exact-match"). It checks the prompt examples against the
+dataset available locally:
 
     python scripts/check_fewshot_leakage.py --dataset rrsisd --splits train val test
     python scripts/check_fewshot_leakage.py --dataset risbench --splits val test

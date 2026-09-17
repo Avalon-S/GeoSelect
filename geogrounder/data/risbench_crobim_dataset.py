@@ -1,7 +1,7 @@
-"""RISBench raw-CrOBIM reader — SAME sample dict as RISBenchDataset, but reads the
-ORIGINAL CrOBIM on-disk layout (img_rgb/ + mask/ + output_phrase_<split>.txt) instead of the
+"""RISBench raw-CroBIM reader — SAME sample dict as RISBenchDataset, but reads the
+ORIGINAL CroBIM on-disk layout (img_rgb/ + mask/ + output_phrase_<split>.txt) instead of the
 HF-arrow form. Use this for a SAME-SOURCE comparison against RSRefSeg2 / RSVG-ZeroOV, whose
-published numbers are on original CrOBIM: the HF-arrow repackage dropped the original
+published numbers are on original CroBIM: the HF-arrow repackage dropped the original
 filenames and may differ in encoding / resolution / mask binarisation, so a number measured
 on the arrow form is not guaranteed comparable to the baselines.
 
@@ -13,10 +13,10 @@ Layout (data_root, e.g. <datasets>/RISBench_orig):
 Notes:
 - One image FILE per referring sample (each referent has its own crop, e.g. test_2_0.png,
   test_2_3.png are distinct files), so image_id is unique per line.
-- The CrOBIM `val` split's output_phrase lines reference `train_*.png` images (val is a subset
+- The CroBIM `val` split's output_phrase lines reference `train_*.png` images (val is a subset
   of the train image pool), NOT a `val_` prefix — handled transparently because we key off the
   filename in each line, not a prefix.
-- GT comes from mask/<image_id> (the canonical CrOBIM mask), the same source RSRefSeg2 encoded
+- GT comes from mask/<image_id> (the canonical CroBIM mask), the same source RSRefSeg2 encoded
   into its jsonl RLE — so GeoSelect and RSRefSeg2 now share images AND GT source.
 """
 
@@ -34,8 +34,8 @@ class RISBenchCrobimDataset:
         ann = os.path.join(data_root, f'output_phrase_{split_tag}.txt')
         if not os.path.isfile(ann):
             raise FileNotFoundError(
-                f"RISBench-CrOBIM: annotation file {ann!r} not found. Expected the original "
-                "CrOBIM layout (img_rgb/ + mask/ + output_phrase_<split>.txt) under data_root.")
+                f"RISBench-CroBIM: annotation file {ann!r} not found. Expected the original "
+                "CroBIM layout (img_rgb/ + mask/ + output_phrase_<split>.txt) under data_root.")
         self.img_dir = os.path.join(data_root, 'img_rgb')
         self.mask_dir = os.path.join(data_root, 'mask')
 
@@ -58,7 +58,7 @@ class RISBenchCrobimDataset:
         image_path = os.path.join(self.img_dir, image_id)
         mask_path = os.path.join(self.mask_dir, image_id)
 
-        # Mask -> uint8 {0,1}.  CrOBIM masks are binary 0/255 (single channel or replicated).
+        # Mask -> uint8 {0,1}.  CroBIM masks are binary 0/255 (single channel or replicated).
         m = np.asarray(Image.open(mask_path))
         if m.ndim == 3:
             m = m[..., 0]
@@ -77,8 +77,8 @@ class RISBenchCrobimDataset:
             'ref_id': index,
             'sent_id': index,
             'image_id': index,           # unique per line (one image file per referent)
-            'category': None,            # CrOBIM publishes no per-sample class label
-            'file_name': image_id,       # original CrOBIM filename, e.g. test_0_0.png
+            'category': None,            # CroBIM publishes no per-sample class label
+            'file_name': image_id,       # original CroBIM filename, e.g. test_0_0.png
             'height': int(H),
             'width': int(W),
         }

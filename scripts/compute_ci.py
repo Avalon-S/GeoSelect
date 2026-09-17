@@ -18,8 +18,8 @@ import json
 import random
 from collections import defaultdict
 
-RISB_TEST = 'experiments/eval_risbench_test/samples.jsonl'
-RRSISD_TEST = 'experiments/runs/eval_rrsisd_test_oracle/samples.jsonl'
+RISB_TEST = 'experiments/runs/eval_risbench_test/samples.jsonl'
+RRSISD_TEST = 'experiments/runs/eval_rrsisd_test/samples.jsonl'
 RRSISD_VAL = 'experiments/runs/eval_rrsisd_val/samples.jsonl'
 NBOOT = 5000
 SEED = 0

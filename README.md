@@ -3,7 +3,7 @@
 [![Paper](https://img.shields.io/badge/Paper-arXiv%3A2607.03869-red)](https://arxiv.org/abs/2607.03869)
 [![Project Page](https://img.shields.io/badge/Project-Page-blue)](https://avalon-s.github.io/GeoSelect/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Venue](https://img.shields.io/badge/IEEE%20TGRS-accepted-brightgreen)](#citation)
+[![IEEE TGRS](https://img.shields.io/badge/IEEE%20TGRS-10.1109%2FTGRS.2026.3734378-brightgreen)](https://ieeexplore.ieee.org/document/11693937)
 
 **English** · [简体中文](README_zh.md)
 
@@ -35,6 +35,9 @@ The same frozen configuration produces both rows; nothing is re-tuned per datase
 extremum along an axis, and SAM turns the chosen box into a mask. Both figures are from the
 paper.*
 
+The [project page](https://avalon-s.github.io/GeoSelect/#inspector) has an interactive demo: pick a
+real case, step through its program, or edit an operator and watch the selection change.
+
 ---
 
 ## Contents
@@ -64,21 +67,18 @@ paper.*
 
 The per-sample IoU dumps ship with this repository, so the headline numbers, the per-stratum
 tables and the bootstrap intervals recompute from the released data alone — no weights, no
-detection, no segmentation:
+detection, no segmentation. `compute_ci.py` and `make_tables.py` need only the Python standard
+library; `fig_failure_stats.py` also needs `matplotlib`.
 
 ```bash
-conda create -n geoselect python=3.10 -y
-conda activate geoselect
-pip install -r requirements.txt
-
 python scripts/compute_ci.py          # headline mIoU + 95% CIs, per-stratum deltas
 
 # the two reported runs -- these reproduce the headline table above
-python scripts/make_tables.py experiments/runs/eval_rrsisd_test_oracle/summary.json \
-                              experiments/eval_risbench_test/summary.json
+python scripts/make_tables.py experiments/runs/eval_rrsisd_test/summary.json \
+                              experiments/runs/eval_risbench_test/summary.json
 
 # the second RRSIS-D run, which carries both selectors and so gives the V1-vs-V2 per-stratum delta
-python scripts/make_tables.py experiments/eval_rrsisd_test/summary.json
+python scripts/make_tables.py experiments/runs/eval_rrsisd_test_v1v2/summary.json
 
 python scripts/fig_failure_stats.py   # the one figure computed purely from the dumps
 ```
@@ -86,21 +86,20 @@ python scripts/fig_failure_stats.py   # the one figure computed purely from the 
 `compute_ci.py` checks its own aggregates against the published values before emitting intervals
 (5,000 resamples, seed 0), so drift is reported rather than absorbed.
 
-**Two RRSIS-D test runs ship.** The reported 58.86 / 59.48 come from
-`runs/eval_rrsisd_test_oracle/`, which is what `compute_ci.py` asserts against. The second run,
-`eval_rrsisd_test/`, scores both selectors and gives 58.77 / 59.60; it is the only dump the
-V1-vs-V2 per-stratum comparison can be rebuilt from, since the oracle run scores the full program
-alone. The 0.09 gap is the detector-build effect noted under
-[A note on determinism](#a-note-on-determinism). RISBench is unaffected: both dumps give
-55.27 / 55.88.
+**Two RRSIS-D test runs ship.** The reported 58.86 / 59.48 come from `runs/eval_rrsisd_test/`,
+which is what `compute_ci.py` asserts against. The second run, `runs/eval_rrsisd_test_v1v2/`,
+scores both selectors and gives 58.77 / 59.60; it is the only dump the V1-vs-V2 per-stratum
+comparison can be rebuilt from, since the reported run has no `v1` scores. The 0.09 gap is the
+detector-build effect noted under [A note on determinism](#a-note-on-determinism). RISBench is
+unaffected: both dumps give 55.27 / 55.88.
 
 ### What the dumps contain
 
 | File | Rows | What it is |
 |---|---|---|
-| `experiments/runs/eval_rrsisd_test_oracle/samples.jsonl` | 3,481 | **RRSIS-D test, the reported run** (58.86 / 59.48), with the oracle-selector ceiling |
-| `experiments/eval_rrsisd_test/samples.jsonl` | 3,481 | a second RRSIS-D test run, both selectors (58.77 / 59.60) — see the note above |
-| `experiments/eval_risbench_test/samples.jsonl` | 16,159 | **RISBench test, the reported run** (55.27 / 55.88), both selectors |
+| `experiments/runs/eval_rrsisd_test/samples.jsonl` | 3,481 | **RRSIS-D test, the reported run** (58.86 / 59.48), with the oracle-selector ceiling |
+| `experiments/runs/eval_rrsisd_test_v1v2/samples.jsonl` | 3,481 | a second RRSIS-D test run, both selectors (58.77 / 59.60) — see the note above |
+| `experiments/runs/eval_risbench_test/samples.jsonl` | 16,159 | **RISBench test, the reported run** (55.27 / 55.88), both selectors |
 | `experiments/runs/eval_risbench_test_oracle/samples.jsonl` | 16,159 | the RISBench oracle ceiling; its full-program numbers match the row above exactly |
 | `experiments/runs/eval_rrsisd_val/samples.jsonl` | — | RRSIS-D val, all selector ablations |
 
@@ -229,14 +228,14 @@ Neither dataset is redistributed here; both come from the authors who introduced
 Set `GEOSELECT_DATA` to a directory holding:
 
 ```
-RSSIS-D/
+RSSIS-D/                                          RRSIS-D, named as the config expects
   rrsisd/{refs(unc).p, instances.json}            REFER layout
   images/rrsisd/
 RISBench_orig/
-  img_rgb/  mask/  output_phrase_<split>.txt      original CrOBIM layout
+  img_rgb/  mask/  output_phrase_<split>.txt      original CroBIM layout
 ```
 
-RISBench is read in its **original CrOBIM layout**, not the HuggingFace repackage, so the
+RISBench is read in its **original CroBIM layout**, not the HuggingFace repackage, so the
 comparison is same-source.
 
 ### 5. Check the detector bridge before a long run
@@ -277,7 +276,8 @@ python -m geoselect_v2.eval.run_eval --dataset rrsisd --split test --n 12 \
 ```
 
 `--n` takes the first N expressions deterministically, so the rows it writes line up with the first
-N of the shipped `experiments/eval_rrsisd_test/samples.jsonl` and can be compared field by field.
+N of the shipped `experiments/runs/eval_rrsisd_test_v1v2/samples.jsonl` and can be compared field
+by field.
 If the per-sample IoUs match, the whole stack is wired correctly.
 
 The run is staged so the three models never co-reside in VRAM: load the parser → synthesise every
@@ -354,21 +354,17 @@ changes sign or significance under that variation.
 
 ## Citation
 
-Accepted for publication in IEEE Transactions on Geoscience and Remote Sensing. Until the issue is
-assigned, please cite the preprint:
-
 ```bibtex
 @article{jiang2026geoselect,
   title   = {GeoSelect: Spatial-Program Execution for Training-Free Referring
              Remote Sensing Image Segmentation},
   author  = {Jiang, Yuhang and Deng, Guohui and Xu, Miaozhong and Ruan, Chao and
              Zhao, Jinling and Huang, Linsheng},
-  journal = {arXiv preprint arXiv:2607.03869},
-  year    = {2026}
+  journal = {IEEE Transactions on Geoscience and Remote Sensing},
+  year    = {2026},
+  doi     = {10.1109/TGRS.2026.3734378}
 }
 ```
-
-This entry will be replaced with the journal reference once volume and pages exist.
 
 [↑ Contents](#contents)
 

@@ -10,7 +10,7 @@
 # Anything not set expands to an empty prefix, so an absolute path can also be pasted in directly.
 
 data:
-  # RRSIS-D in the REFER layout; RISBench in the ORIGINAL CrOBIM layout
+  # RRSIS-D in the REFER layout; RISBench in the ORIGINAL CroBIM layout
   # (img_rgb/ + mask/ + output_phrase_<split>.txt), read by RISBenchCrobimDataset -- NOT the
   # HuggingFace arrow repackage, so the comparison is same-source.
   root: ${GEOSELECT_DATA}/RSSIS-D

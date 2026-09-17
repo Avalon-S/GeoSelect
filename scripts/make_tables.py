@@ -9,8 +9,8 @@ Emits, for each given run, plain-text + LaTeX-ready rows:
 V1 appears ONLY as the in-harness selector baseline (C4) — every reported V2 number is V2's.
 Pass several summary.json (e.g. RRSIS-D test + RISBench test) to print them side by side.
 
-    python scripts/make_tables.py experiments/eval_rrsisd_test/summary.json \
-                                  experiments/eval_risbench_test/summary.json
+    python scripts/make_tables.py experiments/runs/eval_rrsisd_test_v1v2/summary.json \
+                                  experiments/runs/eval_risbench_test/summary.json
 """
 
 import argparse
