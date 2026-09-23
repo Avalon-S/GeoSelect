@@ -74,17 +74,31 @@ section:nth-child(even) { background: var(--gray-50); }
   border-bottom: 1px solid var(--gray-200);
   padding: 0.55rem 0;
 }
-.site-nav ul {
-  list-style: none; display: flex; justify-content: center;
-  gap: 1.5rem; flex-wrap: wrap; max-width: 1140px; margin: 0 auto; padding: 0 24px;
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+/* Wordmark, doubling as the back-to-top control (#top is the document top even
+   with no element of that id). */
+.brand {
+  font-weight: 800; font-size: 1.02rem; letter-spacing: -0.01em;
+  color: var(--indigo); text-decoration: none; white-space: nowrap;
+  transition: var(--transition);
 }
-.site-nav a {
+.brand span { color: var(--teal); }
+.brand:hover { text-decoration: underline; }
+.site-nav ul {
+  list-style: none; display: flex; justify-content: flex-end;
+  gap: 1.5rem; flex-wrap: wrap;
+}
+.site-nav ul a {
   color: var(--gray-600); text-decoration: none; font-size: 0.82rem;
   font-weight: 600; letter-spacing: 0.2px; padding: 0.2rem 0;
   border-bottom: 2px solid transparent; transition: var(--transition);
 }
-.site-nav a:hover { color: var(--teal); border-bottom-color: var(--teal); }
-.site-nav a.active { color: var(--indigo); border-bottom-color: var(--indigo); }
+.site-nav ul a:hover { color: var(--teal); border-bottom-color: var(--teal); }
+.site-nav ul a.active { color: var(--indigo); border-bottom-color: var(--indigo); }
+@media (max-width: 900px) {
+  .nav-inner { flex-wrap: wrap; justify-content: center; gap: 0.35rem 1.2rem; }
+  .site-nav ul { justify-content: center; }
+}
 
 /* ---- Hero ---- */
 .hero {
