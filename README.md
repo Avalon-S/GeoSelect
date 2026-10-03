@@ -362,6 +362,8 @@ changes sign or significance under that variation.
              Zhao, Jinling and Huang, Linsheng},
   journal = {IEEE Transactions on Geoscience and Remote Sensing},
   year    = {2026},
+  volume  = {64},
+  pages   = {5642022-5642022},
   doi     = {10.1109/TGRS.2026.3734378}
 }
 ```
