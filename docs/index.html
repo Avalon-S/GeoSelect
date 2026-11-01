@@ -7,15 +7,34 @@
   <meta name="description" content="GeoSelect — a training-free pipeline that reframes referring remote sensing image segmentation as the execution of a typed spatial program over a single scored-candidate-set type." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="static/css/style.css" />
+  <link rel="stylesheet" href="static/css/geats.css" />
+  <script>
+    /* the show's lighting is set before the first paint: the saved choice, else the day stage */
+    (function () { var t = "day"; try { t = localStorage.getItem("geoselect-show") || "day"; } catch (e) {}
+      document.documentElement.dataset.theme = t === "night" ? "night" : "day";
+      document.documentElement.classList.add("js"); })();
+  </script>
 </head>
 <body>
+
+<!-- the mark: a lock-on reticle under a crown, the one that is selected (original drawing) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="selMark" viewBox="-50 -50 100 100">
+    <path d="M-40,-22 V-40 H-22 M22,-40 H40 V-22 M40,22 V40 H22 M-22,40 H-40 V22" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="square"/>
+    <rect x="-22" y="-16" width="44" height="32" fill="none" stroke="currentColor" stroke-width="6" stroke-dasharray="8 6"/>
+    <rect x="-9" y="-9" width="18" height="18" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<canvas class="fx-show cover" id="fxShow" aria-hidden="true"></canvas>
+<div class="fx-hint" id="fxHint" aria-hidden="true">press any key to skip</div>
 
 <!-- ============ NAV ============ -->
 <nav class="site-nav" id="siteNav">
   <div class="container nav-inner">
-    <a class="brand" href="#top">Geo<span>Select</span></a>
+    <a class="brand" href="#top"><svg aria-hidden="true" style="color:var(--teal)"><use href="#selMark"/></svg>Geo<span>Select</span></a>
     <ul>
       <li><a href="#abstract">Abstract</a></li>
       <li><a href="#motivation">Why Explicit</a></li>
@@ -26,14 +45,29 @@
       <li><a href="#programs">Programs</a></li>
       <li><a href="#citation">BibTeX</a></li>
     </ul>
+    <button class="show-btn" id="showBtn" type="button" aria-label="Switch between the day stage and the night broadcast">
+      <i class="dot"></i><span class="day-l">DAY STAGE</span><span class="night-l">NIGHT LIVE</span>
+    </button>
   </div>
 </nav>
 
 <!-- ============ HERO ============ -->
 <section class="hero">
+  <canvas class="arena" id="arena" aria-hidden="true"></canvas>
   <div class="container">
+    <svg class="emblem" id="emblem" viewBox="-60 -66 120 116" role="img" aria-label="GeoSelect mark">
+      <g class="reticle">
+        <rect class="plate" x="-38" y="-30" width="76" height="62"/>
+        <rect class="ants" x="-30" y="-22" width="60" height="46"/>
+        <path class="corner" d="M-46,-20 V-38 H-28 M28,-38 H46 V-20 M46,22 V40 H28 M-28,40 H-46 V22"/>
+        <rect class="tag" x="-46" y="-52" width="40" height="15"/>
+        <text class="tag-t" x="-26" y="-40.5" text-anchor="middle">No.1</text>
+        <text class="one" x="0" y="13" text-anchor="middle">1</text>
+      </g>
+      <path class="crown" d="M-42,-53 L-38,-64 L-32,-57 L-26,-67 L-20,-57 L-14,-64 L-10,-53 Z"/>
+    </svg>
     <span class="eyebrow">Training-Free &middot; Remote Sensing &middot; Referring Segmentation</span>
-    <h1>GeoSelect</h1>
+    <h1 id="heroTitle">Geo<span>Select</span></h1>
     <p class="subtitle">Spatial-Program Execution for
       <strong class="task">Training-Free Referring Remote Sensing Image Segmentation</strong></p>
     <p class="authors">
@@ -93,7 +127,7 @@
 <!-- ============ ABSTRACT ============ -->
 <section id="abstract">
   <div class="container">
-    <div class="section-title"><h2>Abstract</h2></div>
+    <div class="section-title"><p class="round"><b>ENTRY</b>the desire card</p><h2>Abstract</h2></div>
     <div class="abstract-box">
       <p>Referring remote sensing image segmentation (RRSIS) segments the single object that an
       aerial image's natural-language expression refers to. Existing training-free methods resolve
@@ -123,6 +157,7 @@
 <section id="motivation">
   <div class="container">
     <div class="section-title">
+      <p class="round"><b>ROUND 1</b>same entrants, a different judge</p>
       <h2>Why Explicit Execution?</h2>
       <p class="sub">Same candidate boxes, same segmenter; only the selector differs.
         A real RRSIS-D example: <em>&ldquo;the airplane on the right&rdquo;</em>, with several same-class candidates.</p>
@@ -157,6 +192,7 @@
 <section id="method">
   <div class="container">
     <div class="section-title">
+      <p class="round"><b>RULEBOOK</b>three rules of the game</p>
       <h2>Method</h2>
       <p class="sub">A typed spatial program, synthesised then executed over one scored candidate set; every component is frozen and off-the-shelf.</p>
     </div>
@@ -191,6 +227,7 @@
 <section id="inspector">
   <div class="container">
     <div class="section-title">
+      <p class="round live"><b>LIVE</b>watch a round, or rig it</p>
       <h2>Execution Inspector</h2>
       <p class="sub">The expression is compiled into a typed program, and the program is executed
         over one scored candidate set. Step through it, or edit an operator and watch the selection
@@ -255,6 +292,7 @@
 <section id="results">
   <div class="container">
     <div class="section-title">
+      <p class="round"><b>RANKING</b>the standings</p>
       <h2>Main Results</h2>
       <p class="sub">Supervised specialists and trained VLMs are an upper reference, not training-free competitors.</p>
     </div>
@@ -319,7 +357,7 @@
 <!-- ============ FINDINGS ============ -->
 <section id="findings">
   <div class="container">
-    <div class="section-title"><h2>Key Findings</h2></div>
+    <div class="section-title"><p class="round"><b>HIGHLIGHTS</b>after the match</p><h2>Key Findings</h2></div>
     <div class="findings-grid">
       <div class="finding-card">
         <div class="finding-icon c1">C1</div>
@@ -353,6 +391,7 @@
 <section id="programs">
   <div class="container">
     <div class="section-title">
+      <p class="round"><b>LOADOUT</b>one card per operator</p>
       <h2>Program Library</h2>
       <p class="sub">What each operator looks like on a real expression. Pick any card and it opens
         in the inspector above, where you can step through its execution.</p>
@@ -364,7 +403,7 @@
 <!-- ============ CITATION ============ -->
 <section id="citation">
   <div class="container">
-    <div class="section-title"><h2>BibTeX</h2></div>
+    <div class="section-title"><p class="round"><b>CREDITS</b>cite the show</p><h2>BibTeX</h2></div>
     <div class="citation-box">
       <button class="copy-btn" onclick="copyBib()">Copy</button>
 <pre id="bibtex">@article{jiang2026geoselect,
@@ -397,5 +436,6 @@
 <script src="inspector/geoexec.js"></script>
 <script src="static/app.js"></script>
 <script src="inspector/app.js"></script>
+<script src="static/geats.js"></script>
 </body>
 </html>

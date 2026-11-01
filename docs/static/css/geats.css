@@ -1,0 +1,216 @@
+/* ============================================================
+   GeoSelect project page, theme layer: a selection game show.
+   Loaded after style.css. It re-maps style.css's tokens (so every existing component follows) and
+   adds the show's pieces: the opening, the scoreboard, round labels, the winner's crown.
+   Day = the white-and-gold stage; Night = the late broadcast in black, gold and red.
+   Data colours do not change with the theme: candidate = coral, selected = green, field = teal to
+   amber, mask = cyan, ground truth = yellow (they are burned into the figures too).
+   Original drawings only; no official art, logos or lines.
+   ============================================================ */
+
+:root, :root[data-theme="day"] {
+  --teal: #B88600;          /* style.css's "ours" accent becomes the show's gold */
+  --teal-light: #E0AE1F;
+  --teal-dark: #7A5A00;
+  --teal-bg: #FBF3D9;
+  --indigo: #16171C;        /* structure: ink black */
+  --indigo-light: #3B3D46;
+  --indigo-bg: #EFEDE7;
+  --amber: #D99800;
+  --amber-light: #F0B92A;
+  --amber-bg: #FBF3DD;
+  --gray-50: #F7F5F0;
+  --gray-100: #F0EDE6;
+  --gray-200: #E5E1D8;
+  --gray-300: #D3CEC3;
+  --gray-500: #8E887C;
+  --gray-600: #6A655B;
+  --gray-800: #34322D;
+  --gray-900: #16171C;
+  --white: #FFFFFF;
+  --red: #D7263D;           /* the show's red: ornament only, never data */
+  --gold: #E0AE1F;
+  --gold-ink: #7A5A00;
+  --stage: #FBFAF6;
+  --on-accent: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(30, 24, 10, .08);
+  --shadow-md: 0 6px 18px rgba(30, 24, 10, .10);
+  --shadow-lg: 0 14px 38px rgba(30, 24, 10, .14);
+  color-scheme: light;
+}
+:root[data-theme="night"] {
+  --teal: #FFC83D;
+  --teal-light: #FFD970;
+  --teal-dark: #FFC83D;
+  --teal-bg: rgba(255, 200, 61, .12);
+  --indigo: #F2EFE6;
+  --indigo-light: #CFCBC0;
+  --indigo-bg: rgba(255, 255, 255, .06);
+  --amber: #FFB020;
+  --amber-light: #FFC95C;
+  --amber-bg: rgba(255, 176, 32, .12);
+  --gray-50: #111116;
+  --gray-100: #1A1A21;
+  --gray-200: #272630;
+  --gray-300: #3A3946;
+  --gray-500: #8F8C99;
+  --gray-600: #ADAAB6;
+  --gray-800: #DAD7E0;
+  --gray-900: #F2EFE6;
+  --white: #16161D;
+  --red: #FF3B57;
+  --gold: #FFC83D;
+  --gold-ink: #FFC83D;
+  --stage: #0B0B10;
+  --on-accent: #0B0B10;
+  --shadow-sm: 0 1px 0 rgba(255,255,255,.03) inset, 0 2px 6px rgba(0,0,0,.4);
+  --shadow-md: 0 1px 0 rgba(255,255,255,.04) inset, 0 10px 26px rgba(0,0,0,.5);
+  --shadow-lg: 0 18px 44px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+body { background: var(--stage); transition: background .4s, color .4s; }
+section:nth-child(even) { background: var(--gray-50); }
+a { color: var(--teal-dark); }
+
+/* text on gold is always ink; text on the structure colour flips with it */
+.btn-primary, .filter-tab.active, #inspector .case-pill.sel, #inspector .controls button.primary { color: #16171C; }
+#inspector .case-pill.sel .idx { color: rgba(22, 23, 28, .6); }
+.btn-dark, #inspector .pane > h2 { color: var(--on-accent); }
+:root[data-theme="night"] .btn-dark { background: transparent; color: var(--indigo); border-color: var(--indigo); }
+:root[data-theme="night"] .btn-dark:hover { background: var(--indigo); color: var(--on-accent); }
+:root[data-theme="night"] #inspector .pane > h2 .hint { color: rgba(11, 11, 16, .62); }
+/* surfaces style.css paints with the darkest grey stay dark in both themes */
+.citation-box { background: #121217; color: #E6E2D6; border: 1px solid #2A2933; }
+footer { background: #0B0B10; color: #B7B3A8; border-top: 3px solid var(--gold); }
+#inspector .stage { background: #0B0B10; }
+:root[data-theme="night"] #inspector .tok { color: var(--amber-light); }
+:root[data-theme="night"] #inspector .edited-note, :root[data-theme="night"] #inspector .fallback-box { color: var(--amber-light); }
+:root[data-theme="night"] #inspector .fallback-box b { color: var(--amber); }
+:root[data-theme="night"] .compare-verdict.bad, :root[data-theme="night"] .cmp-btn[data-mode="clip"].active { color: #FF7A6B; }
+
+/* ---- type: a condensed display face for the show's captions ---- */
+.hero h1, .section-title h2, .stat-card .number, .round, .show-tag { font-family: 'Bebas Neue', 'Oswald', Impact, sans-serif; letter-spacing: .02em; font-weight: 400; }
+
+/* ---- nav ---- */
+.site-nav { background: color-mix(in srgb, var(--stage) 88%, transparent); border-bottom: 1px solid var(--gray-200); }
+.site-nav::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;   /* reading progress */
+  background: linear-gradient(90deg, var(--gold) 0 33%, var(--indigo) 33% 66%, var(--red) 66% 100%);
+  clip-path: inset(0 calc(100% - var(--read, 0) * 100%) 0 0); }
+.brand { display: inline-flex; align-items: center; color: var(--indigo); }
+.brand span { color: var(--teal-dark); }
+.brand svg { width: 24px; height: 24px; flex: none; margin-right: .5rem; }
+.site-nav ul a.active { color: var(--indigo); border-bottom-color: var(--gold); }
+.site-nav ul a:hover { color: var(--teal-dark); border-bottom-color: var(--gold); }
+.show-btn {
+  flex: none; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; padding: .3rem .75rem;
+  font: 400 .95rem/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .08em; color: var(--indigo);
+  background: var(--white); border: 2px solid var(--indigo); border-radius: 4px; transition: transform .2s, background .2s;
+}
+.show-btn:hover { transform: translateY(-1px) rotate(-2deg); }
+.show-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 6px var(--red); animation: onair 1.4s ease-in-out infinite; }
+@keyframes onair { 50% { opacity: .25; } }
+.show-btn .night-l, :root[data-theme="night"] .show-btn .day-l { display: none; }
+:root[data-theme="night"] .show-btn .night-l { display: inline; }
+
+/* ---- hero: the arena ---- */
+.hero { background: radial-gradient(900px 480px at 50% -10%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%), var(--stage); }
+.hero::before { background-image: linear-gradient(color-mix(in srgb, var(--indigo) 7%, transparent) 1px, transparent 1px),
+  linear-gradient(90deg, color-mix(in srgb, var(--indigo) 7%, transparent) 1px, transparent 1px); background-size: 34px 34px; }
+.arena { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.emblem { display: block; width: 104px; height: 100px; margin: 0 auto .7rem; cursor: pointer; overflow: visible; }
+.emblem .plate { fill: color-mix(in srgb, var(--gold) 16%, transparent); }
+.emblem .ants { fill: none; stroke: var(--gold); stroke-width: 3; stroke-dasharray: 7 5; animation: ants 1s linear infinite; }
+.emblem .corner { fill: none; stroke: var(--indigo); stroke-width: 6; stroke-linecap: square; }
+.emblem .tag { fill: var(--indigo); }
+.emblem .tag-t { font: 400 12px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .04em; fill: var(--gold); }
+.emblem .one { font: 400 40px/1 'Bebas Neue', Impact, sans-serif; fill: var(--indigo); }
+.emblem .crown { fill: var(--gold); stroke: var(--indigo); stroke-width: 2.2; stroke-linejoin: round; }
+.emblem.lock .reticle { animation: lock .7s cubic-bezier(.2,.9,.25,1.3) both; transform-origin: center; transform-box: fill-box; }
+.emblem.lock .crown { animation: drop .6s .45s cubic-bezier(.2,.9,.25,1.3) both; }
+.emblem.pre .reticle, .emblem.pre .crown { opacity: 0; }
+@keyframes ants { to { stroke-dashoffset: -24; } }
+@keyframes lock { from { transform: scale(1.7); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes drop { from { transform: translateY(-22px); opacity: 0; } to { transform: none; opacity: 1; } }
+.hero .eyebrow { color: var(--indigo); background: var(--white); border: 2px solid var(--indigo); border-radius: 4px; font-weight: 800; }
+.hero h1 {
+  font-size: clamp(3.4rem, 10vw, 6.2rem); line-height: .95; margin-bottom: .5rem;
+  background: none; -webkit-text-fill-color: currentColor; color: var(--indigo);
+  text-shadow: 4px 4px 0 var(--gold), 8px 8px 0 color-mix(in srgb, var(--red) 70%, transparent);
+}
+.hero h1 span { color: var(--teal-dark); }
+:root[data-theme="night"] .hero h1 span { color: var(--gold); }
+.hero h1.lit { animation: titleIn .9s cubic-bezier(.2,.9,.25,1.2); }
+@keyframes titleIn { 0% { transform: scale(1.25) skewX(-8deg); opacity: 0; filter: blur(4px); } 60% { transform: scale(.98); opacity: 1; filter: none; } 100% { transform: none; } }
+.hero .subtitle strong.task { color: var(--indigo); }
+.venue-badge { background: var(--indigo); color: var(--on-accent); border: 0; border-radius: 4px; }
+.venue-badge .venue-tag { background: var(--gold); color: #16171C; border-radius: 3px; }
+.venue-badge:hover { background: var(--red); color: #fff; }
+.btn { border-radius: 4px; }
+.btn-primary { background: var(--gold); color: #16171C; }
+.btn-primary:hover { background: var(--teal-light); }
+.btn-outline { border-color: var(--indigo); color: var(--indigo); }
+.btn-outline:hover { background: var(--indigo); color: var(--on-accent); }
+
+/* ---- section heads: a round caption over the headline ---- */
+.round { display: flex; width: fit-content; align-items: center; gap: .5rem; margin: 0 auto .55rem; font-size: 1.05rem; color: var(--gray-600); }
+.round b { font-weight: 400; color: #16171C; background: var(--gold); padding: .12rem .55rem .02rem; transform: skewX(-12deg); display: inline-block; box-shadow: 3px 3px 0 var(--indigo); }
+.round.live b { background: var(--red); color: #fff; }
+.round.live b::before { content: "● "; animation: onair 1.4s ease-in-out infinite; }
+.section-title h2 { font-size: clamp(2.1rem, 4.4vw, 2.9rem); line-height: 1; }
+.section-title h2::after { width: 92px; height: 4px; background: linear-gradient(90deg, var(--gold) 0 50%, var(--red) 50% 100%); border-radius: 0; }
+.js .section-title { opacity: 0; transform: translateY(16px); transition: opacity .6s, transform .6s cubic-bezier(.2,.8,.2,1); }
+.js section.in .section-title { opacity: 1; transform: none; }
+.js section.in .round b { animation: slam .5s cubic-bezier(.2,.9,.25,1.4); }
+@keyframes slam { from { transform: skewX(-12deg) translateX(-30px) scale(1.3); opacity: 0; } to { transform: skewX(-12deg); opacity: 1; } }
+
+/* ---- the scoreboard ---- */
+.stats-bar { gap: .8rem; }
+.stat-card { background: #121217; border: 2px solid #2A2933; border-top: 4px solid var(--gold); border-radius: 6px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+.stat-card::after { content: ""; position: absolute; inset: 0; pointer-events: none;   /* scoreboard bulbs */
+  background: radial-gradient(circle, rgba(255,255,255,.05) 1px, transparent 1.6px) 0 0/6px 6px; }
+.stat-card:nth-child(3), .stat-card:nth-child(4) { border-top-color: #F2EFE6; }
+.stat-card:nth-child(5) { border-top-color: var(--red); }
+.stat-card .number { font-size: 2.7rem; color: #FFC83D !important; text-shadow: 0 0 14px rgba(255, 200, 61, .45); }
+.stat-card:nth-child(3) .number, .stat-card:nth-child(4) .number { color: #F2EFE6 !important; text-shadow: 0 0 12px rgba(255,255,255,.3); }
+.stat-card:nth-child(5) .number { color: #FF5A6E !important; text-shadow: 0 0 14px rgba(255, 59, 87, .45); }
+.stat-card .label { color: #B7B3A8; }
+
+/* ---- cards and the rest: hard edges and a printed shadow, like show graphics ---- */
+.abstract-box { border-left: 6px solid var(--gold); border-radius: 4px; }
+.method-card, .finding-card, .lib-card, #inspector .pane, #inspector .expr { border-radius: 6px; }
+.method-card, .finding-card { border: 2px solid var(--indigo); box-shadow: 5px 5px 0 var(--gold); }
+.method-card:hover, .finding-card:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--gold); }
+.method-card:nth-child(3n+2), .finding-card:nth-child(2) { box-shadow: 5px 5px 0 var(--red); }
+.method-card .mc-num, .finding-icon { font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 1.25rem; letter-spacing: .06em; }
+.finding-icon { border-radius: 4px; background: var(--indigo) !important; color: var(--gold) !important; }
+.filter-tab, #inspector .case-pill, #inspector .controls button, .cmp-btn, .compare-toggle { border-radius: 4px; }
+.results-table { border-radius: 6px; }
+.results-table thead { background: #16171C; color: #F2EFE6; }
+.results-table th { font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: 1rem; letter-spacing: .08em; }
+.results-table .ours-row { background: var(--teal-bg); }
+.results-table .ours-row td { border-color: var(--gold); }
+.results-table .ours-row .method-name::after {
+  content: "No.1 TRAINING-FREE"; margin-left: .55rem; padding: .08rem .45rem; font: 400 .82rem/1.2 'Bebas Neue', Impact, sans-serif;
+  letter-spacing: .06em; color: #16171C; background: var(--gold); border-radius: 3px; vertical-align: 1px; white-space: nowrap;
+}
+#inspector .pane > h2 { background: var(--indigo); }
+.lib-card:hover { border-color: var(--gold); }
+
+/* ---- the opening ---- */
+.fx-show { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 2000; pointer-events: none; }
+.fx-show.cover { background: #0B0B10; }   /* until the opening starts, so the page does not flash first */
+.fx-hint { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 2001; pointer-events: none;
+  font: 400 1rem/1 'Bebas Neue', Impact, sans-serif; letter-spacing: .2em; color: rgba(255,255,255,.6); transition: opacity .3s; }
+.fx-hint.gone { opacity: 0; }
+
+@media (max-width: 900px) { .arena { display: none; } }   /* no side margins to hold the entrants */
+@media (max-width: 600px) {
+  .stat-card .number { font-size: 2.1rem; }
+  .results-table .ours-row .method-name::after { display: block; width: fit-content; margin: .25rem 0 0; }
+  .site-nav .nav-inner { gap: .3rem .9rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .js .section-title { opacity: 1; transform: none; }
+}
