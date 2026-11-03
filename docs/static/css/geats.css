@@ -83,6 +83,9 @@ a { color: var(--teal-dark); }
 /* surfaces style.css paints with the darkest grey stay dark in both themes */
 .citation-box { background: #121217; color: #E6E2D6; border: 1px solid #2A2933; }
 footer { background: #0B0B10; color: #B7B3A8; border-top: 3px solid var(--gold); }
+/* the global p rule follows the theme; pin the footer text to its night colours so it reads on the dark band */
+footer p { color: #DAD7E0; }
+footer .disclaimer { color: #8F8C99; }
 #inspector .stage { background: #0B0B10; }
 :root[data-theme="night"] #inspector .tok { color: var(--amber-light); }
 :root[data-theme="night"] #inspector .edited-note, :root[data-theme="night"] #inspector .fallback-box { color: var(--amber-light); }
