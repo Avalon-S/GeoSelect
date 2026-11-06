@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="static/css/style.css" />
   <link rel="stylesheet" href="static/css/geats.css" />
+  <link rel="stylesheet" href="static/css/play.css" />
   <script>
     /* the show's lighting is set before the first paint: the saved choice, else the day stage */
     (function () { var t = "day"; try { t = localStorage.getItem("geoselect-show") || "day"; } catch (e) {}
@@ -108,6 +109,30 @@
         Explore Cases
       </a>
     </div>
+    <!-- the opening interaction: pick an expression, watch its program run, drag the boxes (static/play.js) -->
+    <figure class="play" id="play">
+      <div class="play-grid">
+        <div class="play-main">
+          <div class="play-stage">
+            <canvas id="playCanvas" aria-label="An aerial scene with storage tanks, tennis courts, ships, a bridge and airplanes. Choosing an expression runs its spatial program over the boxes; dragging a box runs it again."></canvas>
+            <div class="play-ctl" role="group" aria-label="Board controls">
+              <button type="button" id="playReplay">Replay rounds</button>
+              <button type="button" id="playShuffle">Shuffle</button>
+              <button type="button" id="playJudge" aria-pressed="false">Implicit judge</button>
+            </div>
+          </div>
+          <div class="play-chips" id="playChips" role="group" aria-label="Referring expressions"></div>
+          <code class="play-prog" id="playProg"></code>
+          <ol class="play-rounds" id="playRounds" aria-label="Execution rounds"></ol>
+          <p class="play-hud" id="playHud" aria-live="polite"></p>
+        </div>
+        <aside class="play-panel" id="playPanel"></aside>
+      </div>
+      <figcaption>Pick an expression, then drag the objects, or the bridge. The words fix the program; where the boxes
+        are decides the winner. The program runs in your browser on the same executor as the Execution Inspector below,
+        and <em>Implicit judge</em> marks the box a detector-confidence selector would pick.
+        <span class="muted">Illustration: the scene, its boxes and their confidences are drawn procedurally; the scoreboard numbers are the paper&rsquo;s.</span></figcaption>
+    </figure>
   </div>
 </section>
 
@@ -434,6 +459,7 @@
 <script>window.INSPECTOR_BASE = "inspector/";</script>
 <script src="inspector/traces.js"></script>
 <script src="inspector/geoexec.js"></script>
+<script src="static/play.js"></script>
 <script src="static/app.js"></script>
 <script src="inspector/app.js"></script>
 <script src="static/geats.js"></script>
